@@ -1,4 +1,4 @@
-package com.coursemong.back.balanceGame.domain;
+package com.coursemong.back.balancegame.domain;
 
 import jakarta.persistence.*;
 import lombok.Getter;

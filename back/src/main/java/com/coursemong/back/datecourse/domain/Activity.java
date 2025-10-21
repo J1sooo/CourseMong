@@ -1,6 +1,8 @@
 package com.coursemong.back.datecourse.domain;
 
+import com.coursemong.back.datecourse.dto.ActivityResponse;
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -50,4 +52,23 @@ public class Activity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "course_id", nullable = false)
     private DateCourse dateCourse;
+
+    @Builder
+    private Activity(ActivityType activityType, String activityName, String activityContent,
+                     String location, Double latitude, Double longitude,
+                     DateCourse dateCourse, String tellNumber, String runningTime) {
+        this.activityType = activityType;
+        this.activityName = activityName;
+        this.activityContent = activityContent;
+        this.location = location;
+        this.latitude = latitude;
+        this.longitude = longitude;
+        this.tellNumber = tellNumber;
+        this.runningTime = runningTime;
+        this.dateCourse = dateCourse;
+    }
+
+    public ActivityResponse activityToDto() {
+        return new ActivityResponse(this);
+    }
 }

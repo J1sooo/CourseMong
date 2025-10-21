@@ -1,5 +1,7 @@
 package com.coursemong.back.datecourse.domain;
 
+import com.coursemong.back.datecourse.dto.DateCourseRequest;
+import com.coursemong.back.datecourse.dto.DateCourseResponse;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -31,8 +33,12 @@ public class DateCourse {
         this.password = UUID.randomUUID().toString().substring(0,6);
     }
 
-    public DateCourse(String title, String area) {
-        this.title = title;
-        this.area = area;
+    public DateCourse(DateCourseRequest request) {
+        this.title = request.getTitle();
+        this.area = request.getArea();
+    }
+
+    public DateCourseResponse dateCourseToDto() {
+        return new DateCourseResponse(this);
     }
 }

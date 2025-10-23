@@ -5,6 +5,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/date-courses")
@@ -18,14 +20,14 @@ public class DateCourseController {
     }
 
     @PostMapping("/{dateCourseId}/activities")
-    public ResponseEntity<ActivityResponse> addActivity(@PathVariable Long dateCourseId, @RequestBody ActivityRequest request) {
-        ActivityResponse ActivityResponse = dateCourseService.addActivity(dateCourseId, request);
-        return ResponseEntity.ok(ActivityResponse);
+    public ResponseEntity<List<ActivityResponse>> addActivity(@PathVariable Long dateCourseId, @RequestBody ActivityListRequest request) {
+        List<ActivityResponse> ActivityResponses = dateCourseService.addActivity(dateCourseId, request);
+        return ResponseEntity.ok(ActivityResponses);
     }
 
     @PostMapping("/{activityId}/foods")
-    public ResponseEntity<RecommendationFoodResponse> addRecommendationFood(@PathVariable Long activityId, @RequestBody RecommendationFoodRequest request) {
-        RecommendationFoodResponse recommendationFoodResponse = dateCourseService.addRecommendationFood(activityId, request);
-        return ResponseEntity.ok(recommendationFoodResponse);
+    public ResponseEntity<List<RecommendationFoodResponse>> addRecommendationFood(@PathVariable Long activityId, @RequestBody RecommendationFoodListRequest request) {
+        List<RecommendationFoodResponse> recommendationFoodResponses = dateCourseService.addRecommendationFood(activityId, request);
+        return ResponseEntity.ok(recommendationFoodResponses);
     }
 }

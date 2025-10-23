@@ -1,15 +1,24 @@
 package com.coursemong.back.datecourse;
 
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.coursemong.back.datecourse.domain.Activity;
 import com.coursemong.back.datecourse.domain.DateCourse;
 import com.coursemong.back.datecourse.domain.RecommendationFood;
-import com.coursemong.back.datecourse.dto.*;
+import com.coursemong.back.datecourse.dto.ActivityListRequest;
+import com.coursemong.back.datecourse.dto.ActivityResponse;
+import com.coursemong.back.datecourse.dto.DateCourseRequest;
+import com.coursemong.back.datecourse.dto.DateCourseResponse;
+import com.coursemong.back.datecourse.dto.RecommendationFoodListRequest;
+import com.coursemong.back.datecourse.dto.RecommendationFoodResponse;
 import com.coursemong.back.datecourse.repository.ActivityRepository;
 import com.coursemong.back.datecourse.repository.DateCourseRepository;
 import com.coursemong.back.datecourse.repository.RecommendationFoodRepository;
+
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @RequiredArgsConstructor
 @Service
@@ -26,36 +35,44 @@ public class DateCourseService {
     }
 
     @Transactional
-    public ActivityResponse addActivity(Long dateCourseId, ActivityRequest request) {
+    public List<ActivityResponse> addActivity(Long dateCourseId, ActivityListRequest request) {
         DateCourse dateCourse = dateCourseRepository.findById(dateCourseId)
                 .orElseThrow(() -> new IllegalArgumentException("not fount dateCourse"));
-        Activity activity = Activity.builder()
-                .activityType(request.getActivityType())
-                .activityName(request.getActivityName())
-                .activityContent(request.getActivityContent())
-                .location(request.getLocation())
-                .latitude(request.getLatitude())
-                .longitude(request.getLongitude())
-                .tellNumber(request.getTellNumber())
-                .runningTime(request.getRunningTime())
-                .dateCourse(dateCourse)
-                .build();
 
-        activityRepository.save(activity);
-        return activity.activityToDto();
+        List<Activity> activities = request.getActivities().stream()
+                .map(activityRequest -> Activity.builder()
+                .activityType(activityRequest.getActivityType())
+                .activityName(activityRequest.getActivityName())
+                .activityContent(activityRequest.getActivityContent())
+                .location(activityRequest.getLocation())
+                .latitude(activityRequest.getLatitude())
+                .longitude(activityRequest.getLongitude())
+                .tellNumber(activityRequest.getTellNumber())
+                .runningTime(activityRequest.getRunningTime())
+                .dateCourse(dateCourse)
+                .build()).toList();
+
+        activityRepository.saveAll(activities);
+        return activities.stream()
+                .map(Activity::activityToDto)
+                .toList();
     }
 
     @Transactional
-    public RecommendationFoodResponse addRecommendationFood(Long activityId, RecommendationFoodRequest request) {
+    public List<RecommendationFoodResponse> addRecommendationFood(Long activityId, RecommendationFoodListRequest request) {
         Activity activity = activityRepository.findById(activityId)
                 .orElseThrow(() -> new IllegalArgumentException("not fount activity"));
 
-        RecommendationFood food = new RecommendationFood(
-                request.getFoodName(),
-                request.getFoodPrice(),
-                activity
-        );
-        recommendationFoodRepository.save(food);
-        return food.recommendationFoodToDto();
+        List<RecommendationFood> foods = request.getRecommendationFoods().stream()
+                .map(foodRequest -> new RecommendationFood(
+                        foodRequest.getFoodName(),
+                        foodRequest.getFoodPrice(),
+                        activity
+                )).toList();
+
+        recommendationFoodRepository.saveAll(foods);
+        return foods.stream()
+                .map(RecommendationFood::recommendationFoodToDto)
+                .toList();
     }
 }

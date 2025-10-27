@@ -15,6 +15,10 @@ public class BalanceGameResult {
     @Column(name = "balance_id", nullable = false)
     private Long id;
 
+    // 채점 유형 코드 (P+ R+ C+ 등)
+    @Column(name = "balance_code", length = 20, nullable = false, unique = true)
+    private String balanceCode;
+
     @Column(name = "balance_name", length = 20, nullable = false)
     private String balanceName;
 

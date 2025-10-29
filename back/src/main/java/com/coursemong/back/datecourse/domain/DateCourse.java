@@ -3,9 +3,12 @@ package com.coursemong.back.datecourse.domain;
 import com.coursemong.back.datecourse.dto.DateCourseRequest;
 import com.coursemong.back.datecourse.dto.DateCourseResponse;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -26,6 +29,9 @@ public class DateCourse {
 
     @Column(name = "password", nullable = false)
     private String password;
+
+    @OneToMany(mappedBy = "dateCourse", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Activity> activities = new ArrayList<>();
 
     // 자동 비밀번호 생성
     @PrePersist

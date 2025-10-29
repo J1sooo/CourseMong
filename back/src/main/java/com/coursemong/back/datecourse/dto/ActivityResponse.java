@@ -5,6 +5,8 @@ import com.coursemong.back.datecourse.domain.ActivityType;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Getter
 @NoArgsConstructor
 public class ActivityResponse {
@@ -18,6 +20,7 @@ public class ActivityResponse {
     private Double latitude;
     private Double longitude;
     private Long dateCourseId;
+    private List<RecommendationFoodResponse> recommendationFoods;
 
     public ActivityResponse(Activity activity) {
         this.id = activity.getId();
@@ -30,5 +33,8 @@ public class ActivityResponse {
         this.latitude = activity.getLatitude();
         this.longitude = activity.getLongitude();
         this.dateCourseId = activity.getDateCourse().getId();
+        this.recommendationFoods = activity.getRecommendationFoods().stream()
+                .map(RecommendationFoodResponse::new)
+                .toList();
     }
 }

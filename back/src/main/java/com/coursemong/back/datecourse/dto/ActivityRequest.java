@@ -1,9 +1,12 @@
 package com.coursemong.back.datecourse.dto;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import com.coursemong.back.datecourse.domain.ActivityType;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
+import java.util.List;
 
 @Getter
 @NoArgsConstructor
@@ -29,4 +32,7 @@ public class ActivityRequest {
     private String tellNumber;
 
     private String runningTime;
+
+    @Valid
+    private List<RecommendationFoodRequest> recommendationFoods;
 }

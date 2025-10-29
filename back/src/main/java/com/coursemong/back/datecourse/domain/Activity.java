@@ -6,6 +6,9 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Table(name = "activity")
 @Getter
@@ -52,6 +55,9 @@ public class Activity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "course_id", nullable = false)
     private DateCourse dateCourse;
+
+    @OneToMany(mappedBy = "activity", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<RecommendationFood> recommendationFoods = new ArrayList<>();
 
     @Builder
     private Activity(ActivityType activityType, String activityName, String activityContent,

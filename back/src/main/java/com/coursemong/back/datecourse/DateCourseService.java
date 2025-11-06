@@ -1,5 +1,7 @@
 package com.coursemong.back.datecourse;
 
+import com.coursemong.back.datecourse.dto.DateCourseTempResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -12,10 +14,28 @@ import com.coursemong.back.datecourse.repository.DateCourseRepository;
 
 import lombok.RequiredArgsConstructor;
 
+
+@Slf4j
 @RequiredArgsConstructor
 @Service
 public class DateCourseService {
     private final DateCourseRepository dateCourseRepository;
+    private final DateCourseRedisService redisService;
+
+    @Transactional
+    public DateCourseResponse saveToDatabase(String tempId) {
+        DateCourseTempResponse tempResponse = redisService.getTemporary(tempId);
+
+        DateCourseRequest request = tempResponse.toRequest();
+
+        DateCourseResponse response = createDateCourse(request);
+
+        redisService.deleteTemporary(tempId);
+
+        log.info("저장 완료 DB ID: {}", response.getId());
+
+        return response;
+    }
 
     @Transactional
     public DateCourseResponse createDateCourse(DateCourseRequest request) {

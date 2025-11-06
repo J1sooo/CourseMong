@@ -3,6 +3,7 @@ package com.coursemong.back.datecourse.dto;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import com.coursemong.back.datecourse.domain.ActivityType;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -10,6 +11,7 @@ import java.util.List;
 
 @Getter
 @NoArgsConstructor
+@AllArgsConstructor
 public class ActivityRequest {
     @NotNull
     private ActivityType activityType;

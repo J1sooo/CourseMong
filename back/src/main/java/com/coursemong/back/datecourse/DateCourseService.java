@@ -1,6 +1,7 @@
 package com.coursemong.back.datecourse;
 
 import com.coursemong.back.datecourse.dto.DateCourseTempResponse;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -67,5 +68,20 @@ public class DateCourseService {
 
         dateCourseRepository.save(dateCourse);
         return dateCourse.dateCourseToDto();
+    }
+
+    @Transactional
+    public DateCourseResponse getDateCourse(Long courseId) {
+        DateCourse dateCourse = dateCourseRepository.findById(courseId)
+                .orElseThrow(() -> new EntityNotFoundException("데이트 코스를 찾을 수 없음"));
+
+        return dateCourse.dateCourseToDto();
+    }
+
+    @Transactional
+    public void deleteDateCourse(Long courseId) {
+        DateCourse dateCourse = dateCourseRepository.findById(courseId)
+                .orElseThrow(() -> new EntityNotFoundException("데이트 코스를 찾을 수 없음"));
+        dateCourseRepository.delete(dateCourse);
     }
 }

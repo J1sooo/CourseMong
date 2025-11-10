@@ -1,13 +1,7 @@
 package com.coursemong.back.datecourse;
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.coursemong.back.datecourse.domain.ActivityType;
 import com.coursemong.back.datecourse.dto.ActivityRequest;
@@ -29,6 +23,17 @@ public class DateCourseController {
     public ResponseEntity<DateCourseResponse> createDateCourse(@Valid @RequestBody DateCourseRequest request) {
         DateCourseResponse dateCourseResponse = dateCourseService.createDateCourse(request);
         return ResponseEntity.ok(dateCourseResponse);
+    }
+
+    @GetMapping("/{courseId}")
+    public ResponseEntity<DateCourseResponse> getDateCourse(@PathVariable Long courseId) {
+        DateCourseResponse dateCourseResponse = dateCourseService.getDateCourse(courseId);
+        return ResponseEntity.ok(dateCourseResponse);
+    }
+
+    @DeleteMapping("/{courseId}")
+    public void deleteDateCourse(@PathVariable Long courseId) {
+        dateCourseService.deleteDateCourse(courseId);
     }
 
     @PostMapping("/temporary")

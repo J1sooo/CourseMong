@@ -32,6 +32,12 @@ public class Activity {
     @Column(name = "location", nullable = false)
     private String location;
 
+    @Column(name = "lnmadr", nullable = false)
+    private String lnmadr;
+
+    @Column(name = "rdnmadr", nullable = false)
+    private String rdnmadr;
+
     @Column(name = "tell_number")
     private String tellNumber;
 
@@ -61,12 +67,14 @@ public class Activity {
 
     @Builder
     private Activity(ActivityType activityType, String activityName, String activityContent,
-                     String location, Double latitude, Double longitude,
+                     String location, String lnmadr, String rdnmadr, Double latitude, Double longitude,
                      DateCourse dateCourse, String tellNumber, String runningTime) {
         this.activityType = activityType;
         this.activityName = activityName;
         this.activityContent = activityContent;
         this.location = location;
+        this.lnmadr = lnmadr;
+        this.rdnmadr = rdnmadr;
         this.latitude = latitude;
         this.longitude = longitude;
         this.tellNumber = tellNumber;

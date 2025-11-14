@@ -48,6 +48,8 @@ public class DateCourseService {
                     .activityName(activityRequest.getActivityName())
                     .activityContent(activityRequest.getActivityContent())
                     .location(activityRequest.getLocation())
+                    .lnmadr(activityRequest.getLnmadr())
+                    .rdnmadr(activityRequest.getRdnmadr())
                     .latitude(activityRequest.getLatitude())
                     .longitude(activityRequest.getLongitude())
                     .tellNumber(activityRequest.getTellNumber())

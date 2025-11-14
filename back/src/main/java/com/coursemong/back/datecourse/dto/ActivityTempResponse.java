@@ -17,6 +17,8 @@ public class ActivityTempResponse {
     private String activityName;
     private String activityContent;
     private String location;
+    private String lnmadr;
+    private String rdnmadr;
     private Double latitude;
     private Double longitude;
     private String tellNumber;
@@ -29,6 +31,8 @@ public class ActivityTempResponse {
                 .activityName(request.getActivityName())
                 .activityContent(request.getActivityContent())
                 .location(request.getLocation())
+                .lnmadr(request.getLnmadr())
+                .rdnmadr(request.getRdnmadr())
                 .latitude(request.getLatitude())
                 .longitude(request.getLongitude())
                 .tellNumber(request.getTellNumber())
@@ -43,6 +47,8 @@ public class ActivityTempResponse {
                 this.activityName,
                 this.activityContent,
                 this.location,
+                this.lnmadr,
+                this.rdnmadr,
                 this.latitude,
                 this.longitude,
                 this.tellNumber,

@@ -88,6 +88,8 @@ public class DateCourseRedisService {
                             .activityName(newActivity.getActivityName())
                             .activityContent(newActivity.getActivityContent())
                             .location(newActivity.getLocation())
+                            .lnmadr(newActivity.getLnmadr())
+                            .rdnmadr(newActivity.getRdnmadr())
                             .latitude(newActivity.getLatitude())
                             .longitude(newActivity.getLongitude())
                             .tellNumber(newActivity.getTellNumber())

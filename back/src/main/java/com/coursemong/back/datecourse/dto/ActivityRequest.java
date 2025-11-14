@@ -26,6 +26,12 @@ public class ActivityRequest {
     private String location;
 
     @NotNull
+    private String lnmadr;
+
+    @NotNull
+    private String rdnmadr;
+
+    @NotNull
     private Double latitude;
 
     @NotNull

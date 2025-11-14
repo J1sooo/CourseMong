@@ -15,6 +15,8 @@ public class ActivityResponse {
     private String activityName;
     private String activityContent;
     private String location;
+    private String lnmadr;
+    private String rdnmdar;
     private String tellNumber;
     private String runningTime;
     private Double latitude;
@@ -28,6 +30,8 @@ public class ActivityResponse {
         this.activityName = activity.getActivityName();
         this.activityContent = activity.getActivityContent();
         this.location = activity.getLocation();
+        this.lnmadr = activity.getLnmadr();
+        this.rdnmdar = activity.getRdnmadr();
         this.tellNumber = activity.getTellNumber();
         this.runningTime = activity.getRunningTime();
         this.latitude = activity.getLatitude();

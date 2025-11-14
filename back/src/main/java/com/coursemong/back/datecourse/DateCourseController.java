@@ -59,7 +59,7 @@ public class DateCourseController {
         return ResponseEntity.ok(tempResponse);
     }
 
-    @PostMapping("/temporary/{tempId}/save")
+    @PostMapping("/temporary/{tempId}")
     public ResponseEntity<DateCourseResponse> saveToDatabase(@PathVariable String tempId) {
         DateCourseResponse response = dateCourseService.saveToDatabase(tempId);
         return ResponseEntity.ok(response);

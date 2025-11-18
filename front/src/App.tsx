@@ -1,35 +1,40 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
+import { useRef, useEffect } from 'react'
 import './App.css'
 
 function App() {
-  const [count, setCount] = useState(0)
+    const mapRef = useRef<HTMLDivElement>(null);
+    const mapInstanceRef = useRef<any>(null);
 
-  return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    useEffect(() => {
+        const showMap = () => {
+            // 중복 생성 방지
+            if (!window.naver || !mapRef.current || mapInstanceRef.current) {
+                return;
+            }
+
+            const mapOptions = {
+                center: new window.naver.maps.LatLng(37.3595704, 127.105399),
+                zoom: 10
+            };
+
+        mapInstanceRef.current = new window.naver.maps.Map(mapRef.current, mapOptions);
+    };
+
+        const script = document.createElement("script");
+        script.src = `https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=${import.meta.env.VITE_NAVER_MAP_CLIENT_ID}`;
+        script.onload = showMap;
+        document.head.appendChild(script);
+
+        return () => {
+            if (mapInstanceRef.current) {
+                mapInstanceRef.current = null;
+            }
+        };
+    }, []);
+
+    return (
+        <div ref={mapRef} style={{ width: "400px", height: "400px" }} />
+    );
 }
 
 export default App

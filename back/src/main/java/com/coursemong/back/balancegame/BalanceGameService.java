@@ -12,6 +12,12 @@ public class  BalanceGameService {
 
     private final BalanceGameResultRepository resultRepository;
 
+    // 전체 참여자 수
+    private long totalParticipants = 0L;
+
+    // 유형별 참여자 수
+    private final Map<Integer, Long> typeCountMap = new HashMap<>();
+
     /** 점수 */
     private static final class Delta {
         final int P, R, C;
@@ -73,8 +79,10 @@ public class  BalanceGameService {
         BalanceGameResult meta = resultRepository.findByBalanceCode(code)
                 .orElseThrow(() -> new IllegalStateException("유형 메타가 DB에 없습니다: " + code));
 
+        int typeId = mapCodeToId(code);
+
         BalanceGameEvaluateResponse.TypePayload payload = BalanceGameEvaluateResponse.TypePayload.builder()
-                .id(mapCodeToId(code)) // 유형 1~8
+                .id(typeId)
                 .code(code)
                 .name(meta.getBalanceName())
                 .summary(meta.getBalanceContent())
@@ -83,11 +91,27 @@ public class  BalanceGameService {
                 .worst_match(parseIds(meta.getNotGoodMatch()))
                 .build();
 
-        // 점수, 부호, 타입 반환
+        // 통계
+        synchronized (this) {
+            totalParticipants++;
+
+            long typeCount = typeCountMap.getOrDefault(typeId, 0L) + 1L;
+            typeCountMap.put(typeId, typeCount);
+        }
+
+        long typeCountNow = typeCountMap.getOrDefault(typeId, 0L);
+        double typePercentage = (totalParticipants > 0)
+                ? (typeCountNow * 100.0 / totalParticipants)
+                : 0.0;
+
+        // 점수, 부호, 타입, 통계 반환
         BalanceGameEvaluateResponse res = new BalanceGameEvaluateResponse();
         res.setScores(Map.of("P", p, "R", r, "C", c));
         res.setPolarity(Map.of("P", P, "R", R, "C", C));
         res.setType(payload);
+        res.setTotalParticipants(totalParticipants);
+        res.setTypePercentage(typePercentage);
+
         return res;
     }
 

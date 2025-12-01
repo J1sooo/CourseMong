@@ -19,7 +19,7 @@ public class BalanceGameResult {
     @Column(name = "balance_code", length = 20, nullable = false, unique = true)
     private String balanceCode;
 
-    @Column(name = "balance_name", length = 20, nullable = false)
+    @Column(name = "balance_name", length = 255, nullable = false)
     private String balanceName;
 
     @Column(name = "balance_content", length = 255, nullable = false)

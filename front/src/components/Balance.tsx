@@ -38,6 +38,7 @@ export interface CalculatedResult {
     best_match: number[];
     worst_match: number[];
     percentage?: number;
+    totalParticipants?: number;
 }
 
 const QUESTION_IMAGES: Record<number, { A: string; B: string }> = {
@@ -93,7 +94,8 @@ const Balance: React.FC = () => {
 
     const [questions, setQuestions] = useState<QuestionData[]>([]);
     const [currentQuestion, setCurrentQuestion] = useState<number>(1);
-    const [screenState, setScreenState] = useState<'loading_questions' | 'game' | 'loading_result' | 'result'>('loading_questions');
+    const [screenState, setScreenState] =
+        useState<'loading_questions' | 'game' | 'loading_result' | 'result'>('loading_questions');
     const [answers, setAnswers] = useState<Map<number, string>>(new Map());
     const [calculatedResult, setCalculatedResult] = useState<CalculatedResult | null>(null);
 
@@ -135,7 +137,14 @@ const Balance: React.FC = () => {
     const submitAnswers = async (finalAnswers: Map<number, string>) => {
         setScreenState('loading_result');
         try {
-            const answersObject = Object.fromEntries(finalAnswers);
+            const answersObject: Record<number, string> = {};
+            questions.forEach((q) => {
+                const selected = finalAnswers.get(q.id);
+                if (selected) {
+                    answersObject[q.id] = selected;
+                }
+            });
+
             const response = await fetch('/api/balance-game/evaluate', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -145,12 +154,17 @@ const Balance: React.FC = () => {
             if (!response.ok) throw new Error(`채점 실패: ${response.status}`);
 
             const data = await response.json();
+            console.log('[Balance] evaluate response =>', data);
 
             const resultData: CalculatedResult = {
-                ...data.type,
-                percentage: typeof data.type?.percentage === 'number'
-                    ? data.type.percentage
-                    : Math.floor(Math.random() * 30) + 10,
+                ...data.type, // id, code, name, summary, hashtags, best_match, worst_match
+                percentage:
+                    typeof data.type?.percentage === 'number'
+                        ? data.type.percentage
+                        : typeof data.typePercentage === 'number'
+                            ? data.typePercentage
+                            : undefined,
+                totalParticipants: data.totalParticipants,
             };
 
             setCalculatedResult(resultData);

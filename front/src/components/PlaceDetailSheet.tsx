@@ -161,7 +161,7 @@ export default function PlaceDetailSheet({ open, place, onClose, onReRecommend }
                                 <div>
                                     <span className="block text-xs font-bold text-gray-400 mb-0.5">영업시간</span>
                                     <span className="text-sm text-gray-700 font-medium">
-                                        {place.businessHours || "10:00 ~ 22:00"}
+                                        {place.businessHours || "정보 없음"}
                                     </span>
                                 </div>
                             </div>
@@ -170,7 +170,7 @@ export default function PlaceDetailSheet({ open, place, onClose, onReRecommend }
                                 <div>
                                     <span className="block text-xs font-bold text-gray-400 mb-0.5">전화번호</span>
                                     <span className="text-sm text-gray-700 font-medium">
-                                        {place.tellNumber || "0507-1234-5678"}
+                                        {place.tellNumber || "정보 없음"}
                                     </span>
                                 </div>
                             </div>

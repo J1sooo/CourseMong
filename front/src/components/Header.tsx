@@ -69,7 +69,7 @@ export default function TopBar({
                 </div>
 
                 {subtitle && (
-                    <p className="mt-2 mb-3 text-[15px] text-black/70">{subtitle}</p>
+                    <p className="mt-2 mb-3 text-[15px] text-black/70 text-left">{subtitle}</p>
                 )}
             </div>
 

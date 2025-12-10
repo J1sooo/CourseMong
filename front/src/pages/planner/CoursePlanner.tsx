@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import Choice from "../../components/Choice.tsx";
+import Choice from "../../components/Choice";
 import Header from "../../components/Header";
 import logo from "../../assets/logo.png";
 
@@ -74,7 +74,21 @@ export default function PlannerPage() {
         setBudget(30000); setIgnore(false);
     }, []);
 
-    const handleSeeCourse = useCallback(() => nav("/planner"), [nav]);
+    const handleSeeCourse = useCallback(() => {
+        nav("/planner/result", {
+            state: {
+                city,
+                district,
+                date,
+                hobbySel,
+                themeSel,
+                prefer,
+                budget,
+                lunchSel,
+                dinnerSel
+            }
+        });
+    }, [nav, city, district, date, hobbySel, themeSel, prefer, budget, lunchSel, dinnerSel]);
 
     // 날짜 인풋
     const hiddenDateRef = useRef<HTMLInputElement>(null);
@@ -90,7 +104,7 @@ export default function PlannerPage() {
 
     return (
         <div className="min-h-screen w-full bg-white flex justify-center">
-            <div className="app-shell w-[430px] min-h-screen bg-[#FFF9FA] relative overflow-hidden">
+            <div className="app-shell w-[430px] min-h-screen bg-[#FFF9FA] relative overflow-hidden flex flex-col">
                 <Header
                     title="코스 플래너"
                     subtitle="취향에 맞는 완벽한 데이트 코스를 찾아보세요"
@@ -109,7 +123,7 @@ export default function PlannerPage() {
                     }
                 />
 
-                <main className="px-5 pb-28 pt-2">
+                <main className="px-5 pb-28 pt-2 flex-1 overflow-y-auto">
                     {/* 지역 */}
                     <div className="mt-4">
                         <TitleRow icon={<LocationIcon />} title="지역" />
@@ -292,7 +306,7 @@ export default function PlannerPage() {
                         </div>
                     </div>
 
-                    {/* 버튼 */}
+                    {/* 하단 버튼 */}
                     <div className="mt-8 space-y-3">
                         <button
                             type="button"

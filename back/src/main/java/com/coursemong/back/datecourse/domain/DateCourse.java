@@ -3,10 +3,10 @@ package com.coursemong.back.datecourse.domain;
 import com.coursemong.back.datecourse.dto.DateCourseRequest;
 import com.coursemong.back.datecourse.dto.DateCourseResponse;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -27,16 +27,28 @@ public class DateCourse {
     @Column(name = "area", nullable = false)
     private String area;
 
-    @Column(name = "password", nullable = false)
-    private String password;
+    @Column(name = "course_uuid", nullable = false, columnDefinition = "BINARY(16)", unique = true)
+    private UUID courseUuid;
+
+    @Column(name = "is_public", nullable = false)
+    private boolean isPublic;
+
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    @Column(name = "last_viewed_at")
+    private LocalDateTime lastViewedAt;
 
     @OneToMany(mappedBy = "dateCourse", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Activity> activities = new ArrayList<>();
 
-    // 자동 비밀번호 생성
+    // 자동 UUID 생성
     @PrePersist
-    private void randomPassword() {
-        this.password = UUID.randomUUID().toString().substring(0,6);
+    private void Create() {
+        this.courseUuid = UUID.randomUUID();
+        this.isPublic = false;
+        this.createdAt = LocalDateTime.now();
+        this.lastViewedAt = LocalDateTime.now();
     }
 
     public DateCourse(DateCourseRequest request) {

@@ -1,13 +1,10 @@
 package com.coursemong.back.datecourse.dto;
 
-import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import com.coursemong.back.datecourse.domain.ActivityType;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import java.util.List;
 
 @Getter
 @NoArgsConstructor
@@ -17,30 +14,19 @@ public class ActivityRequest {
     private ActivityType activityType;
 
     @NotNull
-    private String activityName;
+    private String locationName;
 
     @NotNull
-    private String activityContent;
+    private String locationContent;
 
     @NotNull
-    private String location;
+    private String locationUrl;
 
-    @NotNull
-    private String lnmadr;
-
-    @NotNull
-    private String rdnmadr;
+    private String address;
 
     @NotNull
     private Double latitude;
 
     @NotNull
     private Double longitude;
-
-    private String tellNumber;
-
-    private String runningTime;
-
-    @Valid
-    private List<RecommendationFoodRequest> recommendationFoods;
 }

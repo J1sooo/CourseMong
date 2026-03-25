@@ -6,9 +6,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.util.ArrayList;
-import java.util.List;
-
 @Entity
 @Table(name = "activity")
 @Getter
@@ -23,26 +20,17 @@ public class Activity {
     @Column(name = "activity_type", nullable = false)
     private ActivityType activityType;
 
-    @Column(name = "activity_name", nullable = false)
-    private String activityName;
+    @Column(name = "location_name", nullable = false)
+    private String locationName;
 
-    @Column(name = "activity_content", nullable = false)
-    private String activityContent;
+    @Column(name = "location_content", nullable = false)
+    private String locationContent;
 
-    @Column(name = "location", nullable = false)
-    private String location;
+    @Column(name = "location_url", nullable = false)
+    private String locationUrl;
 
-    @Column(name = "lnmadr", nullable = false)
-    private String lnmadr;
-
-    @Column(name = "rdnmadr", nullable = false)
-    private String rdnmadr;
-
-    @Column(name = "tell_number")
-    private String tellNumber;
-
-    @Column(name = "running_time")
-    private String runningTime;
+    @Column(name = "address", nullable = true)
+    private String address;
 
     // h2 임시 코드
     @Column(name = "latitude", nullable = false)
@@ -62,23 +50,17 @@ public class Activity {
     @JoinColumn(name = "course_id", nullable = false)
     private DateCourse dateCourse;
 
-    @OneToMany(mappedBy = "activity", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<RecommendationFood> recommendationFoods = new ArrayList<>();
-
     @Builder
-    private Activity(ActivityType activityType, String activityName, String activityContent,
-                     String location, String lnmadr, String rdnmadr, Double latitude, Double longitude,
-                     DateCourse dateCourse, String tellNumber, String runningTime) {
+    private Activity(ActivityType activityType, String locationName, String locationContent,
+                     String locationUrl, String address, Double latitude, Double longitude,
+                     DateCourse dateCourse) {
         this.activityType = activityType;
-        this.activityName = activityName;
-        this.activityContent = activityContent;
-        this.location = location;
-        this.lnmadr = lnmadr;
-        this.rdnmadr = rdnmadr;
+        this.locationName = locationName;
+        this.locationContent = locationContent;
+        this.locationUrl = locationUrl;
+        this.address = address;
         this.latitude = latitude;
         this.longitude = longitude;
-        this.tellNumber = tellNumber;
-        this.runningTime = runningTime;
         this.dateCourse = dateCourse;
     }
 

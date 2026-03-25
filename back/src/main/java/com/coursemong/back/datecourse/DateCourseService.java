@@ -8,7 +8,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.coursemong.back.datecourse.domain.Activity;
 import com.coursemong.back.datecourse.domain.DateCourse;
-import com.coursemong.back.datecourse.domain.RecommendationFood;
 import com.coursemong.back.datecourse.dto.DateCourseRequest;
 import com.coursemong.back.datecourse.dto.DateCourseResponse;
 import com.coursemong.back.datecourse.repository.DateCourseRepository;
@@ -45,26 +44,14 @@ public class DateCourseService {
         request.getActivities().forEach(activityRequest -> {
             Activity activity = Activity.builder()
                     .activityType(activityRequest.getActivityType())
-                    .activityName(activityRequest.getActivityName())
-                    .activityContent(activityRequest.getActivityContent())
-                    .location(activityRequest.getLocation())
-                    .lnmadr(activityRequest.getLnmadr())
-                    .rdnmadr(activityRequest.getRdnmadr())
+                    .locationName(activityRequest.getLocationName())
+                    .locationContent(activityRequest.getLocationContent())
+                    .locationUrl(activityRequest.getLocationUrl())
+                    .address(activityRequest.getAddress())
                     .latitude(activityRequest.getLatitude())
                     .longitude(activityRequest.getLongitude())
-                    .tellNumber(activityRequest.getTellNumber())
-                    .runningTime(activityRequest.getRunningTime())
                     .dateCourse(dateCourse)
                     .build();
-
-            activityRequest.getRecommendationFoods().forEach(foodRequest -> {
-                RecommendationFood recommendationFood = new RecommendationFood(
-                        foodRequest.getFoodName(),
-                        foodRequest.getFoodPrice(),
-                        activity
-                );
-                activity.getRecommendationFoods().add(recommendationFood);
-            });
             dateCourse.getActivities().add(activity);
         });
 

@@ -85,16 +85,12 @@ public class DateCourseRedisService {
                 if (activity.getActivityType() == activityType) {
                     var updatedActivity = ActivityTempResponse.builder()
                             .activityType(newActivity.getActivityType())
-                            .activityName(newActivity.getActivityName())
-                            .activityContent(newActivity.getActivityContent())
-                            .location(newActivity.getLocation())
-                            .lnmadr(newActivity.getLnmadr())
-                            .rdnmadr(newActivity.getRdnmadr())
+                            .locationName(newActivity.getLocationName())
+                            .locationContent(newActivity.getLocationContent())
+                            .locationUrl(newActivity.getLocationUrl())
+                            .address(newActivity.getAddress())
                             .latitude(newActivity.getLatitude())
                             .longitude(newActivity.getLongitude())
-                            .tellNumber(newActivity.getTellNumber())
-                            .runningTime(newActivity.getRunningTime())
-                            .recommendationFoods(newActivity.getRecommendationFoods())
                             .build();
 
                     activities.set(i, updatedActivity);

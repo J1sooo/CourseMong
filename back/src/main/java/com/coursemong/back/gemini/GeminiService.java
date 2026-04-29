@@ -2,99 +2,104 @@ package com.coursemong.back.gemini;
 
 import com.coursemong.back.datecourse.DateCourseRedisService;
 import com.coursemong.back.datecourse.dto.DateCourseTempResponse;
+import com.coursemong.back.kakao.KakaoPlaceDto;
+import com.coursemong.back.kakao.KakaoSearchService;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.genai.Client;
 import com.google.genai.types.Content;
 import com.google.genai.types.GenerateContentConfig;
-import com.google.genai.types.GenerateContentResponse;
 import com.google.genai.types.Part;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
 public class GeminiService {
-    private final Client client;
+
+    private final GeminiApiClient geminiApiClient;
     private final ObjectMapper objectMapper;
     private final DateCourseRedisService redisService;
+    private final KakaoSearchService kakaoSearchService;
 
     @Transactional
     public DateCourseTempResponse generateText(GeminiRequest request) {
-        // 시스템 지시어 정의
-        String systemInstruction = """
-                너는 한국 데이트 코스 검색 전문가야.
-                모든 장소 정보는 반드시 '구글 지도(Google Maps)'에서 실제로 검색 가능하고 운영중인 곳을 기준으로 검색해.
-                [규칙]
-                1. 장소 이름은 구글 지도에 등록된 명칭을 사용해.
-                2. 주소는 구글 지도에서 검색되는 주소로 해.
-                3. 마크다운 기호(```json)를 절대 사용하지 마.
-                4. 오직 JSON 객체 데이터만 반환해.
-                5. locationUrl은 google Maps에서 검색된 URL을 보여줘. 
-               
-    
-                  [JSON 출력 스키마]
-                  {
-                    "title": "데이트 코스 제목",
-                    "area": "지역명",
-                    "activities": [
-                      {
-                        "activityType": "MORNING | LUNCH | AFTERNOON | DINNER",
-                        "locationName": "장소 이름",
-                        "locationContent": "장소에 대한 1줄 설명",
-                        "locationUrl": "구글 URL",
-                        "address": "구글에 등록된 주소",
-                        "latitude": 0.0,
-                        "longitude": 0.0
-                      }
-                    ]
-                  }
-                """;
+        String systemInstruction = loadSystemInstruction();
+        GenerateContentConfig config = buildConfig(systemInstruction);
 
-        // 설정 객체 생성 및 시스템 지시어 삽입
+        List<RecommendActivityRequest> activitiesWithCandidates = request.activities().stream()
+                .map(activity -> {
+                    String query = request.area() + " " + activity.category();
+                    List<KakaoPlaceDto> candidates = kakaoSearchService.searchPlaces(query, 1, 5);
+                    log.debug("카카오 검색 - 쿼리: {}, 결과: {}개", query, candidates.size());
+                    return new RecommendActivityRequest(activity.type(), activity.category(), candidates);
+                })
+                .toList();
+
+        String promptJson = buildPromptJson(request, activitiesWithCandidates);
+        log.debug("제미나이 프롬프트 JSON: {}", promptJson);
+
+        String rawResponse = geminiApiClient.callGemini(promptJson, config);
+        log.debug("제미나이 응답: {}", rawResponse);
+
+        return parseAndSave(rawResponse);
+    }
+
+    private String loadSystemInstruction() {
+        try {
+            ClassPathResource resource = new ClassPathResource("prompts/gemini-system.txt");
+            return new String(resource.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+        } catch (Exception e) {
+            log.error("프롬프트 파일 읽기 실패: {}", e.getMessage());
+            throw new RuntimeException("프롬프트 파일 읽기 실패: " + e.getMessage(), e);
+        }
+    }
+
+    private GenerateContentConfig buildConfig(String systemInstruction) {
         Part systemPart = Part.fromText(systemInstruction);
-
         Content systemContent = Content.builder()
                 .role("system")
                 .parts(List.of(systemPart))
                 .build();
-
-        GenerateContentConfig config = GenerateContentConfig.builder()
+        return GenerateContentConfig.builder()
                 .systemInstruction(systemContent)
                 .build();
+    }
 
+    private String buildPromptJson(GeminiRequest request, List<RecommendActivityRequest> activities) {
         try {
-            // DTO -> JSON 문자열로 변환
-            String prompt = objectMapper.writeValueAsString(request);
+            Map<String, Object> prompt = Map.of(
+                    "area", request.area(),
+                    "relationship", request.relationship(),
+                    "date", request.date() != null ? request.date().toString() : "",
+                    "hobby", request.hobby(),
+                    "theme", request.theme(),
+                    "activities", activities
+            );
+            return objectMapper.writeValueAsString(prompt);
+        } catch (Exception e) {
+            log.error("프롬프트 JSON 직렬화 실패: {}", e.getMessage());
+            throw new RuntimeException("프롬프트 JSON 직렬화 실패: " + e.getMessage(), e);
+        }
+    }
 
-            GenerateContentResponse response =
-                    client.models.generateContent(
-                            "gemini-2.5-flash",
-                            prompt,
-                            config
-                    );
-            // AI의 응답을 안전하게 JSON으로 파싱하기 위한 필터링 로직
-            String rawResponse = response.text();
-
-            // 1. 앞뒤 공백 제거
-            rawResponse = rawResponse.trim();
-
-            // 2. 만약 AI가 마크다운 코드 블록(```json ... ```)으로 감쌌다면 이를 제거
+    private DateCourseTempResponse parseAndSave(String rawResponse) {
+        try {
             if (rawResponse.startsWith("```")) {
                 rawResponse = rawResponse.replaceAll("^```json", "").replaceAll("```$", "").trim();
             }
-
             DateCourseTempResponse aiResponse = objectMapper.readValue(rawResponse, DateCourseTempResponse.class);
-            System.out.println(aiResponse);
             String tempId = redisService.saveTemporary(aiResponse.toRequest());
             return redisService.getTemporary(tempId);
-
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            log.error("응답 파싱 및 저장 실패: {}", e.getMessage());
+            throw new RuntimeException("응답 파싱 및 저장 실패: " + e.getMessage(), e);
         }
     }
 }

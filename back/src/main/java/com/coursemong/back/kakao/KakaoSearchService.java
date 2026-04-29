@@ -1,39 +1,43 @@
 package com.coursemong.back.kakao;
 
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 
+import java.util.ArrayList;
+import java.util.List;
+
+@Slf4j
 @Service
+@RequiredArgsConstructor
 public class KakaoSearchService {
 
-    @Value("${KAKAO_REST_API_KEY}")
-    private String kakaoRestApiKey;
+    private final KakaoApiClient kakaoApiClient;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public String searchPlaces(String query, int page, int size) {
+    public List<KakaoPlaceDto> searchPlaces(String query, int page, int size) {
         try {
-            RestTemplate restTemplate = new RestTemplate();
-
-            HttpHeaders headers = new HttpHeaders();
-            headers.set("Authorization", "KakaoAK " + kakaoRestApiKey);
-            headers.set("KA", "sdk/v2 os/javascript lang/ko device/web origin/http://localhost:8080");
-
-            HttpEntity<?> entity = new HttpEntity<>(headers);
-
             String apiUrl = "https://dapi.kakao.com/v2/local/search/keyword.json"
                     + "?query=" + query
                     + "&page=" + page
                     + "&size=" + size;
 
-            ResponseEntity<String> response = restTemplate.exchange(apiUrl, HttpMethod.GET, entity, String.class);
+            String responseBody = kakaoApiClient.search(apiUrl);
 
-            return response.getBody();
+            JsonNode root = objectMapper.readTree(responseBody);
+            JsonNode documents = root.get("documents");
+
+            List<KakaoPlaceDto> places = new ArrayList<>();
+            for (JsonNode doc : documents) {
+                places.add(objectMapper.treeToValue(doc, KakaoPlaceDto.class));
+            }
+
+            return places;
         } catch (Exception e) {
-            return "카카오 검색 API 호출 실패: " + e.getMessage();
+            log.error("카카오 검색 결과 파싱 실패: {}", e.getMessage());
+            return List.of();
         }
     }
 }

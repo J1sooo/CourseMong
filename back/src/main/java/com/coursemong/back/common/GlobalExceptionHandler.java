@@ -17,19 +17,19 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(EntityNotFoundException.class)
     public ResponseEntity<Map<String, Object>> handleEntityNotFound(EntityNotFoundException e) {
         log.warn("리소스를 찾을 수 없음: {}", e.getMessage());
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorBody(e.getMessage()));
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorBody("요청한 리소스를 찾을 수 없습니다."));
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<Map<String, Object>> handleIllegalArgument(IllegalArgumentException e) {
         log.warn("잘못된 요청: {}", e.getMessage());
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorBody(e.getMessage()));
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorBody("잘못된 요청입니다."));
     }
 
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<Map<String, Object>> handleRuntimeException(RuntimeException e) {
         log.error("서버 오류 발생: {}", e.getMessage());
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorBody(e.getMessage()));
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorBody("서버 오류가 발생했습니다."));
     }
 
     private Map<String, Object> errorBody(String message) {

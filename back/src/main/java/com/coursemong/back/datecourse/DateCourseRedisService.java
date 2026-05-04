@@ -33,7 +33,7 @@ public class DateCourseRedisService {
         try {
             DateCourseTempResponse tempResponse = DateCourseTempResponse.fromRequest(request, tempId);
             redisTemplate.opsForValue().set(key, tempResponse, TEMP_TTL_HOURS, TimeUnit.HOURS);
-            log.info("임시 저장 완료 tempId: {}", tempId);
+            log.debug("임시 저장 완료 tempId: {}", tempId);
             return tempId;
         } catch (Exception e) {
             throw new RuntimeException("임시 저장 실패", e);
@@ -46,14 +46,14 @@ public class DateCourseRedisService {
             Object cached = redisTemplate.opsForValue().get(key);
             if (cached == null) {
                 log.warn("임시 데이터 찾을 수 없음 tempId: {}", tempId);
-                throw new EntityNotFoundException("임시 데이터를 찾을 수 없음 tempId: " + tempId);
+                throw new EntityNotFoundException("임시 데이터를 찾을 수 없음");
             }
             return objectMapper.convertValue(cached, DateCourseTempResponse.class);
         } catch (EntityNotFoundException e) {
             throw e;
         } catch (Exception e) {
             log.error("임시 데이터 조회 실패 tempId: {}", tempId, e);
-            throw new RuntimeException("임시 데이터 조회 실패 tempId: " + tempId, e);
+            throw new RuntimeException("임시 데이터 조회 실패", e);
         }
     }
 
@@ -63,7 +63,7 @@ public class DateCourseRedisService {
             Object cached = redisTemplate.opsForValue().get(key);
             if (cached == null) {
                 log.warn("임시 데이터 찾을 수 없음 tempId: {}", tempId);
-                throw new EntityNotFoundException("임시 데이터를 찾을 수 없음 tempId: " + tempId);
+                throw new EntityNotFoundException("임시 데이터를 찾을 수 없음");
             }
 
             DateCourseTempResponse tempResponse = objectMapper.convertValue(cached, DateCourseTempResponse.class);
@@ -93,7 +93,7 @@ public class DateCourseRedisService {
 
             if (!found) {
                 log.warn("{} 타입 activity를 찾을 수 없음 tempId: {}", activityType, tempId);
-                throw new EntityNotFoundException(activityType + " 타입의 activity를 찾을 수 없음 tempId: " + tempId);
+                throw new EntityNotFoundException(activityType + " 타입의 activity를 찾을 수 없음");
             }
 
             redisTemplate.opsForValue().set(key, tempResponse, TEMP_TTL_HOURS, TimeUnit.HOURS);
@@ -111,7 +111,7 @@ public class DateCourseRedisService {
         String key = TEMP_KEY_PREFIX + tempId;
         try {
             redisTemplate.delete(key);
-            log.info("임시 데이터 삭제 완료 tempId: {}", tempId);
+            log.debug("임시 데이터 삭제 완료 tempId: {}", tempId);
         } catch (Exception e) {
             log.error("임시 데이터 삭제 실패 tempId: {}", tempId, e);
         }

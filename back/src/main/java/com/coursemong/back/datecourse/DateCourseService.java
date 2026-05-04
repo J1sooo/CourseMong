@@ -35,7 +35,7 @@ public class DateCourseService {
 
         redisService.deleteTemporary(tempId);
 
-        log.info("저장 완료 DB ID: {}", response.getId());
+        log.debug("저장 완료 DB ID: {}", response.getId());
 
         return response;
     }

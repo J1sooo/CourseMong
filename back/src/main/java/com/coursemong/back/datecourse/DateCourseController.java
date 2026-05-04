@@ -10,6 +10,8 @@ import com.coursemong.back.datecourse.dto.DateCourseTempResponse;
 import com.coursemong.back.gemini.GeminiService;
 import com.coursemong.back.gemini.UpdateActivityRequest;
 
+import java.util.UUID;
+
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
@@ -25,6 +27,11 @@ public class DateCourseController {
     public ResponseEntity<DateCourseResponse> createDateCourse(@Valid @RequestBody DateCourseRequest request) {
         DateCourseResponse dateCourseResponse = dateCourseService.createDateCourse(request);
         return ResponseEntity.ok(dateCourseResponse);
+    }
+
+    @GetMapping
+    public ResponseEntity<DateCourseResponse> getDateCourseByUuid(@RequestParam UUID uuid) {
+        return ResponseEntity.ok(dateCourseService.getDateCourseByUuid(uuid));
     }
 
     @GetMapping("/{courseId}")

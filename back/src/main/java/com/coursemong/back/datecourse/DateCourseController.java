@@ -4,10 +4,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import com.coursemong.back.datecourse.domain.ActivityType;
-import com.coursemong.back.datecourse.dto.ActivityRequest;
 import com.coursemong.back.datecourse.dto.DateCourseRequest;
 import com.coursemong.back.datecourse.dto.DateCourseResponse;
 import com.coursemong.back.datecourse.dto.DateCourseTempResponse;
+import com.coursemong.back.gemini.GeminiService;
+import com.coursemong.back.gemini.UpdateActivityRequest;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +19,7 @@ import lombok.RequiredArgsConstructor;
 public class DateCourseController {
     private final DateCourseService dateCourseService;
     private final DateCourseRedisService dateCourseRedisService;
+    private final GeminiService geminiService;
 
     @PostMapping
     public ResponseEntity<DateCourseResponse> createDateCourse(@Valid @RequestBody DateCourseRequest request) {
@@ -53,9 +55,9 @@ public class DateCourseController {
     public ResponseEntity<DateCourseTempResponse> updateActivity(
             @PathVariable String tempId,
             @PathVariable ActivityType activityType,
-            @Valid @RequestBody ActivityRequest activityRequest) {
+            @RequestBody UpdateActivityRequest request) {
 
-        DateCourseTempResponse tempResponse = dateCourseRedisService.updateActivityByType(tempId, activityType, activityRequest);
+        DateCourseTempResponse tempResponse = geminiService.updateActivity(tempId, request);
         return ResponseEntity.ok(tempResponse);
     }
 

@@ -30,7 +30,7 @@ public class DateCourse {
     @Column(name = "course_uuid", nullable = false, columnDefinition = "BINARY(16)", unique = true)
     private UUID courseUuid;
 
-    @Column(name = "is_public", nullable = false)
+    @Column(name = "published", nullable = false)
     private boolean published;
 
     @Column(name = "created_at", nullable = false, updatable = false)

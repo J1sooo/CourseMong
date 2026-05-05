@@ -46,7 +46,6 @@ public class DateCourse {
     @PrePersist
     private void Create() {
         this.courseUuid = UUID.randomUUID();
-        this.isPublic = false;
         this.createdAt = LocalDateTime.now();
         this.lastViewedAt = LocalDateTime.now();
     }
@@ -54,6 +53,7 @@ public class DateCourse {
     public DateCourse(DateCourseRequest request) {
         this.title = request.getTitle();
         this.area = request.getArea();
+        this.isPublic = request.isPublic();
     }
 
     public DateCourseResponse dateCourseToDto() {

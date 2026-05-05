@@ -26,17 +26,12 @@ public class DateCourseService {
     private final DateCourseRedisService redisService;
 
     @Transactional
-    public DateCourseResponse saveToDatabase(String tempId) {
+    public DateCourseResponse saveToDatabase(String tempId, boolean isPublic) {
         DateCourseTempResponse tempResponse = redisService.getTemporary(tempId);
-
-        DateCourseRequest request = tempResponse.toRequest();
-
+        DateCourseRequest request = tempResponse.toRequest(isPublic);
         DateCourseResponse response = createDateCourse(request);
-
         redisService.deleteTemporary(tempId);
-
         log.debug("저장 완료 DB ID: {}", response.getId());
-
         return response;
     }
 

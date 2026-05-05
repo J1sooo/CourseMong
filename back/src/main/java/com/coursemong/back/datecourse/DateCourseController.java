@@ -69,8 +69,10 @@ public class DateCourseController {
     }
 
     @PostMapping("/temporary/{tempId}")
-    public ResponseEntity<DateCourseResponse> saveToDatabase(@PathVariable String tempId) {
-        DateCourseResponse response = dateCourseService.saveToDatabase(tempId);
+    public ResponseEntity<DateCourseResponse> saveToDatabase(
+            @PathVariable String tempId,
+            @RequestParam boolean isPublic) {
+        DateCourseResponse response = dateCourseService.saveToDatabase(tempId, isPublic);
         return ResponseEntity.ok(response);
     }
 }

@@ -10,6 +10,7 @@ import com.coursemong.back.datecourse.dto.DateCourseTempResponse;
 import com.coursemong.back.gemini.GeminiService;
 import com.coursemong.back.gemini.UpdateActivityRequest;
 
+import java.util.List;
 import java.util.UUID;
 
 import jakarta.validation.Valid;
@@ -27,6 +28,11 @@ public class DateCourseController {
     public ResponseEntity<DateCourseResponse> createDateCourse(@Valid @RequestBody DateCourseRequest request) {
         DateCourseResponse dateCourseResponse = dateCourseService.createDateCourse(request);
         return ResponseEntity.ok(dateCourseResponse);
+    }
+
+    @GetMapping("/board")
+    public ResponseEntity<List<DateCourseResponse>> getPublicDateCourses() {
+        return ResponseEntity.ok(dateCourseService.getPublicDateCourses());
     }
 
     @GetMapping
@@ -71,8 +77,8 @@ public class DateCourseController {
     @PostMapping("/temporary/{tempId}")
     public ResponseEntity<DateCourseResponse> saveToDatabase(
             @PathVariable String tempId,
-            @RequestParam boolean isPublic) {
-        DateCourseResponse response = dateCourseService.saveToDatabase(tempId, isPublic);
+            @RequestParam boolean published) {
+        DateCourseResponse response = dateCourseService.saveToDatabase(tempId, published);
         return ResponseEntity.ok(response);
     }
 }

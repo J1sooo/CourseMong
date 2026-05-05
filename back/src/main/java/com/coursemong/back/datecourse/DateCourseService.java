@@ -1,22 +1,19 @@
 package com.coursemong.back.datecourse;
 
+import com.coursemong.back.datecourse.domain.Activity;
+import com.coursemong.back.datecourse.domain.DateCourse;
+import com.coursemong.back.datecourse.dto.DateCourseRequest;
+import com.coursemong.back.datecourse.dto.DateCourseResponse;
 import com.coursemong.back.datecourse.dto.DateCourseTempResponse;
+import com.coursemong.back.datecourse.repository.DateCourseRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.coursemong.back.datecourse.domain.Activity;
-import com.coursemong.back.datecourse.domain.DateCourse;
-import com.coursemong.back.datecourse.dto.DateCourseRequest;
-import com.coursemong.back.datecourse.dto.DateCourseResponse;
-import com.coursemong.back.datecourse.repository.DateCourseRepository;
-
+import java.util.List;
 import java.util.UUID;
-
-import lombok.RequiredArgsConstructor;
-
 
 @Slf4j
 @RequiredArgsConstructor
@@ -26,9 +23,9 @@ public class DateCourseService {
     private final DateCourseRedisService redisService;
 
     @Transactional
-    public DateCourseResponse saveToDatabase(String tempId, boolean isPublic) {
+    public DateCourseResponse saveToDatabase(String tempId, boolean published) {
         DateCourseTempResponse tempResponse = redisService.getTemporary(tempId);
-        DateCourseRequest request = tempResponse.toRequest(isPublic);
+        DateCourseRequest request = tempResponse.toRequest(published);
         DateCourseResponse response = createDateCourse(request);
         redisService.deleteTemporary(tempId);
         log.debug("저장 완료 DB ID: {}", response.getId());
@@ -57,14 +54,21 @@ public class DateCourseService {
         return dateCourse.dateCourseToDto();
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
+    public List<DateCourseResponse> getPublicDateCourses() {
+        return dateCourseRepository.findAllByPublishedTrue().stream()
+                .map(DateCourse::dateCourseToDto)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
     public DateCourseResponse getDateCourseByUuid(UUID courseUuid) {
         DateCourse dateCourse = dateCourseRepository.findByCourseUuid(courseUuid)
                 .orElseThrow(() -> new EntityNotFoundException("데이트 코스를 찾을 수 없음"));
         return dateCourse.dateCourseToDto();
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public DateCourseResponse getDateCourse(Long courseId) {
         DateCourse dateCourse = dateCourseRepository.findById(courseId)
                 .orElseThrow(() -> new EntityNotFoundException("데이트 코스를 찾을 수 없음"));

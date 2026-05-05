@@ -30,8 +30,8 @@ public class DateCourse {
     @Column(name = "course_uuid", nullable = false, columnDefinition = "BINARY(16)", unique = true)
     private UUID courseUuid;
 
-    @Column(name = "is_public", nullable = false)
-    private boolean isPublic;
+    @Column(name = "published", nullable = false)
+    private boolean published;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -42,11 +42,9 @@ public class DateCourse {
     @OneToMany(mappedBy = "dateCourse", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Activity> activities = new ArrayList<>();
 
-    // 자동 UUID 생성
     @PrePersist
-    private void Create() {
+    private void onCreate() {
         this.courseUuid = UUID.randomUUID();
-        this.isPublic = false;
         this.createdAt = LocalDateTime.now();
         this.lastViewedAt = LocalDateTime.now();
     }
@@ -54,9 +52,14 @@ public class DateCourse {
     public DateCourse(DateCourseRequest request) {
         this.title = request.getTitle();
         this.area = request.getArea();
+        this.published = request.isPublished();
     }
 
     public DateCourseResponse dateCourseToDto() {
         return new DateCourseResponse(this);
+    }
+
+    public void updateLastViewedAt() {
+        this.lastViewedAt = LocalDateTime.now();
     }
 }

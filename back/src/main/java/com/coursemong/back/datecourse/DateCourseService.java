@@ -1,46 +1,41 @@
 package com.coursemong.back.datecourse;
 
-import com.coursemong.back.datecourse.dto.DateCourseTempResponse;
-import jakarta.persistence.EntityNotFoundException;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.coursemong.back.datecourse.domain.Activity;
 import com.coursemong.back.datecourse.domain.DateCourse;
 import com.coursemong.back.datecourse.dto.DateCourseRequest;
 import com.coursemong.back.datecourse.dto.DateCourseResponse;
+import com.coursemong.back.datecourse.dto.DateCourseTempResponse;
 import com.coursemong.back.datecourse.repository.DateCourseRepository;
-
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+import java.util.UUID;
 
 @Slf4j
 @RequiredArgsConstructor
 @Service
 public class DateCourseService {
+
     private final DateCourseRepository dateCourseRepository;
     private final DateCourseRedisService redisService;
 
     @Transactional
-    public DateCourseResponse saveToDatabase(String tempId) {
+    public DateCourseResponse saveToDatabase(String tempId, boolean published) {
         DateCourseTempResponse tempResponse = redisService.getTemporary(tempId);
-
-        DateCourseRequest request = tempResponse.toRequest();
-
+        DateCourseRequest request = tempResponse.toRequest(published);
         DateCourseResponse response = createDateCourse(request);
-
         redisService.deleteTemporary(tempId);
-
-        log.info("저장 완료 DB ID: {}", response.getId());
-
+        log.debug("저장 완료 DB ID: {}", response.getId());
         return response;
     }
 
     @Transactional
     public DateCourseResponse createDateCourse(DateCourseRequest request) {
         DateCourse dateCourse = new DateCourse(request);
-
         request.getActivities().forEach(activityRequest -> {
             Activity activity = Activity.builder()
                     .activityType(activityRequest.getActivityType())
@@ -54,8 +49,22 @@ public class DateCourseService {
                     .build();
             dateCourse.getActivities().add(activity);
         });
-
         dateCourseRepository.save(dateCourse);
+        return dateCourse.dateCourseToDto();
+    }
+
+    @Transactional(readOnly = true)
+    public List<DateCourseResponse> getPublicDateCourses() {
+        return dateCourseRepository.findAllByPublishedTrue().stream()
+                .map(DateCourse::dateCourseToDto)
+                .toList();
+    }
+
+    @Transactional
+    public DateCourseResponse getDateCourseByUuid(UUID courseUuid) {
+        DateCourse dateCourse = dateCourseRepository.findByCourseUuid(courseUuid)
+                .orElseThrow(() -> new EntityNotFoundException("데이트 코스를 찾을 수 없음"));
+        dateCourse.updateLastViewedAt();
         return dateCourse.dateCourseToDto();
     }
 
@@ -63,7 +72,7 @@ public class DateCourseService {
     public DateCourseResponse getDateCourse(Long courseId) {
         DateCourse dateCourse = dateCourseRepository.findById(courseId)
                 .orElseThrow(() -> new EntityNotFoundException("데이트 코스를 찾을 수 없음"));
-
+        dateCourse.updateLastViewedAt();
         return dateCourse.dateCourseToDto();
     }
 

@@ -24,7 +24,7 @@ public class GeminiApiClient {
     public String callGemini(String promptJson, GenerateContentConfig config) {
         try {
             GenerateContentResponse response = client.models.generateContent(
-                    "gemini-2.5-flash",
+                    "gemini-2.5-flash-lite",
                     promptJson,
                     config
             );

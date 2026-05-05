@@ -19,6 +19,8 @@ public class DateCourseRequest {
     @NotNull
     private String area;
 
+    private boolean published;
+
     @Valid
     @NotNull
     @NotEmpty

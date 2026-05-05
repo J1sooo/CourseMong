@@ -1,7 +1,6 @@
 package com.coursemong.back.datecourse.dto;
 
 import com.coursemong.back.datecourse.domain.DateCourse;
-import jakarta.persistence.Column;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -15,6 +14,7 @@ public class DateCourseResponse {
     private Long id;
     private String title;
     private String area;
+    private boolean published;
     private UUID courseUuid;
     private LocalDateTime createdAt;
     private LocalDateTime lastViewedAt;
@@ -24,6 +24,7 @@ public class DateCourseResponse {
         this.id = dateCourse.getId();
         this.title = dateCourse.getTitle();
         this.area = dateCourse.getArea();
+        this.published = dateCourse.isPublished();
         this.courseUuid = dateCourse.getCourseUuid();
         this.createdAt = dateCourse.getCreatedAt();
         this.lastViewedAt = dateCourse.getLastViewedAt();

@@ -33,12 +33,14 @@ public class DateCourseTempResponse {
         List<ActivityRequest> activityRequests = this.activities.stream()
                 .map(ActivityTempResponse::toRequest)
                 .toList();
+        return new DateCourseRequest(this.title, this.area, false, activityRequests);
+    }
 
-        return new DateCourseRequest(
-                this.title,
-                this.area,
-                activityRequests
-        );
+    public DateCourseRequest toRequest(boolean published) {
+        List<ActivityRequest> activityRequests = this.activities.stream()
+                .map(ActivityTempResponse::toRequest)
+                .toList();
+        return new DateCourseRequest(this.title, this.area, published, activityRequests);
     }
 }
 

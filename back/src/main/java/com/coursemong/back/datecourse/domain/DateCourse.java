@@ -58,4 +58,8 @@ public class DateCourse {
     public DateCourseResponse dateCourseToDto() {
         return new DateCourseResponse(this);
     }
+
+    public void updateLastViewedAt() {
+        this.lastViewedAt = LocalDateTime.now();
+    }
 }

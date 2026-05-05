@@ -19,6 +19,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Service
 public class DateCourseService {
+
     private final DateCourseRepository dateCourseRepository;
     private final DateCourseRedisService redisService;
 
@@ -35,7 +36,6 @@ public class DateCourseService {
     @Transactional
     public DateCourseResponse createDateCourse(DateCourseRequest request) {
         DateCourse dateCourse = new DateCourse(request);
-
         request.getActivities().forEach(activityRequest -> {
             Activity activity = Activity.builder()
                     .activityType(activityRequest.getActivityType())
@@ -49,7 +49,6 @@ public class DateCourseService {
                     .build();
             dateCourse.getActivities().add(activity);
         });
-
         dateCourseRepository.save(dateCourse);
         return dateCourse.dateCourseToDto();
     }
@@ -61,18 +60,19 @@ public class DateCourseService {
                 .toList();
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public DateCourseResponse getDateCourseByUuid(UUID courseUuid) {
         DateCourse dateCourse = dateCourseRepository.findByCourseUuid(courseUuid)
                 .orElseThrow(() -> new EntityNotFoundException("데이트 코스를 찾을 수 없음"));
+        dateCourse.updateLastViewedAt();
         return dateCourse.dateCourseToDto();
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public DateCourseResponse getDateCourse(Long courseId) {
         DateCourse dateCourse = dateCourseRepository.findById(courseId)
                 .orElseThrow(() -> new EntityNotFoundException("데이트 코스를 찾을 수 없음"));
-
+        dateCourse.updateLastViewedAt();
         return dateCourse.dateCourseToDto();
     }
 

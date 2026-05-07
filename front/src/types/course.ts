@@ -21,3 +21,20 @@ export interface DateCourseResponse {
   lastViewedAt: string
   activities: ActivityResponse[]
 }
+
+export interface ActivityTempResponse {
+  activityType: ActivityType
+  locationName: string
+  locationContent: string
+  locationUrl: string
+  address: string | null
+  latitude: number
+  longitude: number
+}
+
+export interface DateCourseTempResponse {
+  tempId: string
+  title: string
+  area: string
+  activities: ActivityTempResponse[]
+}

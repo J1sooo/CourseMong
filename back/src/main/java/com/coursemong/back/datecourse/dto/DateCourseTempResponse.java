@@ -42,5 +42,13 @@ public class DateCourseTempResponse {
                 .toList();
         return new DateCourseRequest(this.title, this.area, published, activityRequests);
     }
+
+    public DateCourseRequest toRequest(boolean published, String customTitle) {
+        List<ActivityRequest> activityRequests = this.activities.stream()
+                .map(ActivityTempResponse::toRequest)
+                .toList();
+        String finalTitle = (customTitle != null && !customTitle.isBlank()) ? customTitle : this.title;
+        return new DateCourseRequest(finalTitle, this.area, published, activityRequests);
+    }
 }
 

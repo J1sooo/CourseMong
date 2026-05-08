@@ -4,7 +4,7 @@ import { useMutation } from '@tanstack/react-query'
 import { REGIONS } from '@/data/regions'
 import { geminiApi } from '@/api/geminiApi'
 import type { ActivityType } from '@/types/course'
-import type { ActivityInput } from '@/types/gemini'
+import type { ActivityInput, SavedCourseRequest } from '@/types/gemini'
 
 // ─── 상수 ────────────────────────────────────────────────────────────────────
 
@@ -195,7 +195,16 @@ function CreatePage() {
   const { mutate, isPending } = useMutation({
     mutationFn: geminiApi.recommend,
     onSuccess: (data) => {
-      localStorage.setItem('published', String(published))
+      // 결과 페이지에서 재추천 시 필요한 원본 요청 데이터 저장
+      const savedRequest: SavedCourseRequest = {
+        area: [city, district, town].filter(Boolean).join(' '),
+        relationship,
+        hobby: hobbies,
+        theme,
+        activities: [...activities.entries()].map(([type, category]) => ({ type, category })),
+        published,
+      }
+      localStorage.setItem('courseRequest', JSON.stringify(savedRequest))
       navigate(`/result/${data.tempId}`)
     },
   })

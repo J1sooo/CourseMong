@@ -1,8 +1,14 @@
 import { useEffect, useRef } from 'react'
-import type { ActivityTempResponse, ActivityType } from '@/types/course'
+import type { ActivityType } from '@/types/course'
+
+interface MapActivity {
+  activityType: ActivityType
+  latitude: number
+  longitude: number
+}
 
 interface KakaoMapProps {
-  activities: ActivityTempResponse[]
+  activities: MapActivity[]
 }
 
 const ACTIVITY_ORDER: ActivityType[] = ['MORNING', 'LUNCH', 'AFTERNOON', 'DINNER']

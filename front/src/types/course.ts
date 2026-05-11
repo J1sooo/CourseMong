@@ -1,7 +1,7 @@
 export type ActivityType = 'MORNING' | 'LUNCH' | 'AFTERNOON' | 'DINNER'
 
 export interface ActivityResponse {
-  activityId: number
+  id: number
   activityType: ActivityType
   locationName: string
   locationContent: string
@@ -9,6 +9,7 @@ export interface ActivityResponse {
   address: string | null
   latitude: number
   longitude: number
+  dateCourseId: number
 }
 
 export interface DateCourseResponse {

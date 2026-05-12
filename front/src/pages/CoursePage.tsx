@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useMutation } from '@tanstack/react-query'
 import { courseApi } from '@/api/courseApi'
 import KakaoMap from '@/components/KakaoMap'
 import Header from '@/components/Header'
 import type { ActivityResponse, ActivityType } from '@/types/course'
-import { viewedCourseStorage } from '@/utils/storage'
+import { viewedCourseStorage, myCourseStorage } from '@/utils/storage'
 
 // ─── 상수 ────────────────────────────────────────────────────────────────────
 
@@ -110,6 +110,9 @@ function CoursePage() {
   const { uuid } = useParams<{ uuid: string }>()
   const navigate = useNavigate()
   const [toast, setToast] = useState<string | null>(null)
+  const [showPublishConfirm, setShowPublishConfirm] = useState(false)
+  const isMyCourse = myCourseStorage.getAll().some((c) => c.uuid === uuid)
+  const [isPublished, setIsPublished] = useState<boolean | null>(null)
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ['course', uuid],
@@ -121,8 +124,17 @@ function CoursePage() {
   useEffect(() => {
     if (data && uuid) {
       viewedCourseStorage.save({ uuid, title: data.title, area: data.area })
+      setIsPublished(data.published)
     }
   }, [data, uuid])
+
+  const { mutate: publishCourse, isPending: isPublishing } = useMutation({
+    mutationFn: () => courseApi.publishCourse(uuid!),
+    onSuccess: () => {
+      setIsPublished(true)
+      showToast('게시판에 공개됐어요 🎉')
+    },
+  })
 
   const sortedActivities: ActivityResponse[] = data?.activities
     ? [...data.activities].sort(
@@ -219,7 +231,46 @@ function CoursePage() {
 
         {/* 하단 버튼 */}
         {!isLoading && data && (
-          <div className="flex flex-col gap-3 pb-8">
+          <div className="flex flex-col items-center gap-5 pb-8">
+            {/* 공개하기 확인 팝업 */}
+            {showPublishConfirm && (
+              <div className="fixed inset-0 z-50 flex items-end justify-center" onClick={() => setShowPublishConfirm(false)}>
+                <div className="absolute inset-0 bg-black/40" />
+                <div className="relative w-full max-w-lg bg-white dark:bg-zinc-900 rounded-t-3xl p-6 flex flex-col gap-4"
+                  onClick={(e) => e.stopPropagation()}>
+                  <div className="w-10 h-1 bg-gray-200 dark:bg-zinc-700 rounded-full mx-auto" />
+                  <p className="text-base font-semibold text-black dark:text-white text-center">
+                    게시판에 공개할까요?
+                  </p>
+                  <p className="text-sm text-gray-400 text-center">
+                    공개하면 다른 사람들에게도 보여요 👀<br />한 번 공개하면 되돌릴 수 없어요
+                  </p>
+                  <button type="button" disabled={isPublishing}
+                    onClick={() => { publishCourse(); setShowPublishConfirm(false) }}
+                    className="w-full py-4 rounded-full bg-[#ff5283] text-white font-bold text-base hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-60">
+                    {isPublishing ? '공개 중...' : '공개하기'}
+                  </button>
+                  <button type="button" onClick={() => setShowPublishConfirm(false)}
+                    className="w-full py-3 rounded-2xl bg-gray-100 dark:bg-zinc-800 text-gray-500 dark:text-gray-400 text-sm font-medium cursor-pointer">
+                    취소
+                  </button>
+                </div>
+              </div>
+            )}
+            {isMyCourse && isPublished === false && (
+              <button type="button" onClick={() => setShowPublishConfirm(true)} disabled={isPublishing}
+                className="flex items-center gap-2 text-base font-semibold text-black dark:text-white cursor-pointer hover:opacity-80 transition-opacity disabled:opacity-60">
+                공개하기
+                <span className="text-xl text-gray-300 dark:text-zinc-600">○</span>
+              </button>
+            )}
+            {isMyCourse && isPublished === true && (
+              <div className="flex items-center gap-2 text-base font-semibold text-black dark:text-white">
+                공개됨
+                <span className="text-xl text-[#ff5283]">●</span>
+              </div>
+            )}
+            <div className="flex flex-col gap-3 w-full mt-2">
             <button
               type="button"
               onClick={handleShare}
@@ -234,6 +285,7 @@ function CoursePage() {
             >
               홈으로
             </button>
+            </div>
           </div>
         )}
 

@@ -22,7 +22,9 @@ function MainPage() {
   })
 
   const totalPages = Math.max(1, Math.ceil(courses.length / PAGE_SIZE))
-  const paginated = courses.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+  const paginated = [...courses]
+    .sort((a, b) => b.id - a.id)
+    .slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
 
   const handleCourseClick = (course: DateCourseResponse) => {
     navigate(`/course/${course.courseUuid}`)
@@ -94,7 +96,7 @@ function MainPage() {
                 <tr className="bg-[#fff5f7] dark:bg-zinc-900 border-b border-gray-200 dark:border-zinc-700 text-sm font-semibold text-black dark:text-white">
                   <th className="py-3 px-4 text-center font-semibold">제목</th>
                   <th className="py-3 px-4 text-center font-semibold w-[100px]">생성일</th>
-                  <th className="py-3 px-4 text-center font-semibold w-[120px]">지역</th>
+                  <th className="py-3 px-4 text-center font-semibold w-[140px]">지역</th>
                 </tr>
               </thead>
               <tbody>
@@ -113,7 +115,7 @@ function MainPage() {
                     >
                       <td className="py-3 px-4 text-center truncate max-w-0 text-black dark:text-white">{course.title}</td>
                       <td className="py-3 px-4 text-center text-gray-500 dark:text-gray-400">{formatDate(course.createdAt)}</td>
-                      <td className="py-3 px-4 text-center text-gray-500 dark:text-gray-400 max-w-[120px] truncate">{course.area}</td>
+                      <td className="py-3 px-4 text-center text-gray-500 dark:text-gray-400 max-w-[140px] truncate">{course.area}</td>
                     </tr>
                   ))
                 )}

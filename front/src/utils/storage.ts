@@ -29,8 +29,9 @@ export const tempCourseStorage = {
 
   save: (item: Omit<StoredTempCourse, 'createdAt'>) => {
     const list = tempCourseStorage.getAll()
-    const filtered = list.filter((c) => c.tempId !== item.tempId)
-    const next = [{ ...item, createdAt: Date.now() }, ...filtered]
+    const existing = list.find((c) => c.tempId === item.tempId)
+    if (existing) return // 이미 있으면 createdAt 유지
+    const next = [{ ...item, createdAt: Date.now() }, ...list]
     localStorage.setItem('tempCourses', JSON.stringify(next))
   },
 

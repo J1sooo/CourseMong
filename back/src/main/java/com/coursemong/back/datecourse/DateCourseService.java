@@ -77,6 +77,14 @@ public class DateCourseService {
     }
 
     @Transactional
+    public DateCourseResponse publishCourse(UUID courseUuid) {
+        DateCourse dateCourse = dateCourseRepository.findByCourseUuid(courseUuid)
+                .orElseThrow(() -> new EntityNotFoundException("데이트 코스를 찾을 수 없음"));
+        dateCourse.publish();
+        return dateCourse.dateCourseToDto();
+    }
+
+    @Transactional
     public void deleteDateCourse(Long courseId) {
         DateCourse dateCourse = dateCourseRepository.findById(courseId)
                 .orElseThrow(() -> new EntityNotFoundException("데이트 코스를 찾을 수 없음"));

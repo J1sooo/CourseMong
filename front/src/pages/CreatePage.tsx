@@ -132,7 +132,7 @@ function CreatePage() {
   const [activities, setActivities] = useState<Map<ActivityType, string>>(new Map())
 
   // 공개 여부
-  const [published, setPublished] = useState(false)
+  // const [published, setPublished] = useState(false) — ResultPage에서 관리
 
   // ─── 지역 핸들러 ───────────────────────────────────────────────────────────
   const districts = city ? Object.keys(REGIONS[city] ?? {}) : []
@@ -189,21 +189,18 @@ function CreatePage() {
     setHobbies([])
     setTheme('')
     setActivities(new Map())
-    setPublished(false)
   }
 
   // ─── 제출 ──────────────────────────────────────────────────────────────────
   const { mutate, isPending } = useMutation({
     mutationFn: geminiApi.recommend,
     onSuccess: (data) => {
-      // 결과 페이지에서 재추천 시 필요한 원본 요청 데이터 저장
       const savedRequest: SavedCourseRequest = {
         area: [city, district, town].filter(Boolean).join(' '),
         relationship,
         hobby: hobbies,
         theme,
         activities: [...activities.entries()].map(([type, category]) => ({ type, category })),
-        published,
       }
       localStorage.setItem('courseRequest', JSON.stringify(savedRequest))
       navigate(`/result/${data.tempId}`)
@@ -369,26 +366,6 @@ function CreatePage() {
               </div>
             </div>
           ))}
-        </section>
-
-        {/* 공개하기 */}
-        <section className="flex flex-col items-center gap-2">
-          <button
-            type="button"
-            onClick={() => setPublished((prev) => !prev)}
-            className="flex items-center gap-2 text-base font-semibold text-black dark:text-white cursor-pointer hover:opacity-80 transition-opacity"
-            aria-pressed={published}
-          >
-            공개하기
-            <span className={`text-xl ${published ? 'text-[#ff5283]' : 'text-gray-300 dark:text-zinc-600'}`}>
-              {published ? '●' : '○'}
-            </span>
-          </button>
-          <p className="text-xs text-gray-400 text-center">
-            {published
-              ? '공개하기를 눌러서 다른 사람들에게 자랑해보세요!'
-              : '공개하기를 눌러서 다른 사람들에게 자랑해보세요!'}
-          </p>
         </section>
 
         {/* 버튼 */}

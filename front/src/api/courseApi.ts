@@ -24,6 +24,9 @@ export const courseApi = {
       .then((res) => res.data),
 
   // POST /api/date-courses/temporary/{tempId}?published=true/false
+  publishCourse: (uuid: string) =>
+    api.patch<DateCourseResponse>(`/date-courses/${uuid}/publish`).then((res) => res.data),
+
   saveCourse: (tempId: string, published: boolean, title?: string) =>
     api
       .post<DateCourseResponse>(`/date-courses/temporary/${tempId}`, null, {

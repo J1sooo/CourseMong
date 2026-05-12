@@ -34,5 +34,4 @@ export interface SavedCourseRequest {
   hobby: string[]
   theme: string
   activities: ActivityInput[]
-  published: boolean
 }

@@ -1,10 +1,12 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { courseApi } from '@/api/courseApi'
 import KakaoMap from '@/components/KakaoMap'
+import Header from '@/components/Header'
 import type { ActivityTempResponse, ActivityType } from '@/types/course'
 import type { SavedCourseRequest, UpdateReason } from '@/types/gemini'
+import { tempCourseStorage, myCourseStorage } from '@/utils/storage'
 
 // ─── 상수 ────────────────────────────────────────────────────────────────────
 
@@ -256,6 +258,13 @@ function ResultPage() {
     enabled: !!tempId,
   })
 
+  // 임시 코스 localStorage 저장 (데이터 로드 후)
+  useEffect(() => {
+    if (data && tempId) {
+      tempCourseStorage.save({ tempId, area: data.area })
+    }
+  }, [data, tempId])
+
   const { mutate: updateActivity } = useMutation({
     mutationFn: ({ activity, reason }: { activity: ActivityTempResponse; reason: UpdateReason }) => {
       const originalActivity = savedRequest?.activities.find((a) => a.type === activity.activityType)
@@ -281,6 +290,8 @@ function ResultPage() {
     mutationFn: (title: string) => courseApi.saveCourse(tempId!, published, title),
     onSuccess: (saved) => {
       localStorage.removeItem('courseRequest')
+      tempCourseStorage.remove(tempId!)
+      myCourseStorage.save({ uuid: saved.courseUuid, title: saved.title, area: saved.area })
       navigate(`/course/${saved.courseUuid}`)
     },
   })
@@ -328,9 +339,7 @@ function ResultPage() {
         />
       )}
 
-      <header className="flex justify-center items-center py-6 bg-white dark:bg-black border-b border-gray-100 dark:border-zinc-800">
-        <img src="/favicon.png" alt="코스몽 로고" className="w-16 h-16 object-contain" />
-      </header>
+      <Header />
 
       <main className="px-5 py-8 max-w-lg mx-auto flex flex-col gap-6">
 
@@ -400,6 +409,9 @@ function ResultPage() {
                   : '눌러서 코스를 공개하고 다른 사람들과 공유해보세요'}
               </p>
             </div>
+            <p className="text-xs text-amber-500 text-center">
+              ⏳ 확정하지 않으면 6시간 후 사라져요
+            </p>
             <button
               type="button"
               onClick={() => setShowTitleModal(true)}

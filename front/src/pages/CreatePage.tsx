@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useMutation } from '@tanstack/react-query'
 import { REGIONS } from '@/data/regions'
 import { geminiApi } from '@/api/geminiApi'
+import Header from '@/components/Header'
 import type { ActivityType } from '@/types/course'
 import type { ActivityInput, SavedCourseRequest } from '@/types/gemini'
 
@@ -237,10 +238,7 @@ function CreatePage() {
   return (
     <div className="min-h-screen bg-white dark:bg-black">
 
-      {/* 헤더 */}
-      <header className="flex justify-center items-center py-6 bg-white dark:bg-black border-b border-gray-100 dark:border-zinc-800">
-        <img src="/favicon.png" alt="코스몽 로고" className="w-16 h-16 object-contain" />
-      </header>
+      <Header />
 
       <main className="px-5 py-8 max-w-lg mx-auto flex flex-col gap-8">
 

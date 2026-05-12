@@ -1,9 +1,11 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { courseApi } from '@/api/courseApi'
 import KakaoMap from '@/components/KakaoMap'
+import Header from '@/components/Header'
 import type { ActivityResponse, ActivityType } from '@/types/course'
+import { viewedCourseStorage } from '@/utils/storage'
 
 // ─── 상수 ────────────────────────────────────────────────────────────────────
 
@@ -115,6 +117,13 @@ function CoursePage() {
     enabled: !!uuid,
   })
 
+  // 마지막으로 본 코스 저장
+  useEffect(() => {
+    if (data && uuid) {
+      viewedCourseStorage.save({ uuid, title: data.title, area: data.area })
+    }
+  }, [data, uuid])
+
   const sortedActivities: ActivityResponse[] = data?.activities
     ? [...data.activities].sort(
         (a, b) =>
@@ -150,9 +159,7 @@ function CoursePage() {
       {toast && <Toast message={toast} />}
 
       {/* 헤더 */}
-      <header className="flex justify-center items-center py-6 bg-white dark:bg-black border-b border-gray-100 dark:border-zinc-800">
-        <img src="/favicon.png" alt="코스몽 로고" className="w-16 h-16 object-contain" />
-      </header>
+      <Header />
 
       <main className="px-5 py-8 max-w-lg mx-auto flex flex-col gap-6">
 

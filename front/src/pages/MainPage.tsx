@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { courseApi } from '@/api/courseApi'
+import Header from '@/components/Header'
 import type { DateCourseResponse } from '@/types/course'
 
 const PAGE_SIZE = 10
@@ -37,10 +38,7 @@ function MainPage() {
   return (
     <div className="min-h-screen bg-white dark:bg-black">
 
-      {/* 헤더 */}
-      <header className="flex justify-center items-center py-6 bg-white dark:bg-black">
-        <img src="/favicon.png" alt="코스몽 로고" className="w-24 h-24 object-contain" />
-      </header>
+      <Header />
 
       {/* 히어로 섹션 — 뷰포트 높이로 꽉 채워서 아래에 뭔가 있다는 걸 유도 */}
       <section className="bg-[#fff5f7] dark:bg-zinc-900 px-6 flex flex-col items-center justify-center text-center gap-5"

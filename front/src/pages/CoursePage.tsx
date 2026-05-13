@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation } from '@tanstack/react-query'
 import { courseApi } from '@/api/courseApi'
@@ -111,8 +111,17 @@ function CoursePage() {
   const navigate = useNavigate()
   const [toast, setToast] = useState<string | null>(null)
   const [showPublishConfirm, setShowPublishConfirm] = useState(false)
-  const isMyCourse = myCourseStorage.getAll().some((c) => c.uuid === uuid)
   const [isPublished, setIsPublished] = useState<boolean | null>(null)
+
+  const isMyCourse = useMemo(
+    () => myCourseStorage.getAll().some((c) => c.uuid === uuid),
+    [uuid]
+  )
+
+  const showToast = (message: string) => {
+    setToast(message)
+    setTimeout(() => setToast(null), 2500)
+  }
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ['course', uuid],
@@ -142,11 +151,6 @@ function CoursePage() {
           ACTIVITY_ORDER.indexOf(a.activityType) - ACTIVITY_ORDER.indexOf(b.activityType)
       )
     : []
-
-  const showToast = (message: string) => {
-    setToast(message)
-    setTimeout(() => setToast(null), 2500)
-  }
 
   const handleShare = async () => {
     const url = window.location.href

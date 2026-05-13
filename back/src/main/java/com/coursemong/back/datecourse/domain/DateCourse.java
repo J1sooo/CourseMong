@@ -62,4 +62,8 @@ public class DateCourse {
     public void updateLastViewedAt() {
         this.lastViewedAt = LocalDateTime.now();
     }
+
+    public void publish() {
+        this.published = true;
+    }
 }

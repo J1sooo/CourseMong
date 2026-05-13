@@ -74,11 +74,17 @@ public class DateCourseController {
         return ResponseEntity.ok(tempResponse);
     }
 
+    @PatchMapping("/{uuid}/publish")
+    public ResponseEntity<DateCourseResponse> publishCourse(@PathVariable UUID uuid) {
+        return ResponseEntity.ok(dateCourseService.publishCourse(uuid));
+    }
+
     @PostMapping("/temporary/{tempId}")
     public ResponseEntity<DateCourseResponse> saveToDatabase(
             @PathVariable String tempId,
-            @RequestParam boolean published) {
-        DateCourseResponse response = dateCourseService.saveToDatabase(tempId, published);
+            @RequestParam boolean published,
+            @RequestParam(required = false) String title) {
+        DateCourseResponse response = dateCourseService.saveToDatabase(tempId, published, title);
         return ResponseEntity.ok(response);
     }
 }

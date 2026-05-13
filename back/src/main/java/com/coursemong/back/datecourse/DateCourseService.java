@@ -24,9 +24,9 @@ public class DateCourseService {
     private final DateCourseRedisService redisService;
 
     @Transactional
-    public DateCourseResponse saveToDatabase(String tempId, boolean published) {
+    public DateCourseResponse saveToDatabase(String tempId, boolean published, String customTitle) {
         DateCourseTempResponse tempResponse = redisService.getTemporary(tempId);
-        DateCourseRequest request = tempResponse.toRequest(published);
+        DateCourseRequest request = tempResponse.toRequest(published, customTitle);
         DateCourseResponse response = createDateCourse(request);
         redisService.deleteTemporary(tempId);
         log.debug("저장 완료 DB ID: {}", response.getId());
@@ -73,6 +73,14 @@ public class DateCourseService {
         DateCourse dateCourse = dateCourseRepository.findById(courseId)
                 .orElseThrow(() -> new EntityNotFoundException("데이트 코스를 찾을 수 없음"));
         dateCourse.updateLastViewedAt();
+        return dateCourse.dateCourseToDto();
+    }
+
+    @Transactional
+    public DateCourseResponse publishCourse(UUID courseUuid) {
+        DateCourse dateCourse = dateCourseRepository.findByCourseUuid(courseUuid)
+                .orElseThrow(() -> new EntityNotFoundException("데이트 코스를 찾을 수 없음"));
+        dateCourse.publish();
         return dateCourse.dateCourseToDto();
     }
 

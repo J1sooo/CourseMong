@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class GeminiController {
     private final GeminiService geminiService;
 
-    @PostMapping("/gemini")
+    @PostMapping("/api/gemini")
     public ResponseEntity<DateCourseTempResponse> responseGemini(@RequestBody GeminiRequest request) {
         DateCourseTempResponse response = geminiService.generateText(request);
         return ResponseEntity.ok(response);

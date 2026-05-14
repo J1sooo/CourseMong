@@ -1,0 +1,54 @@
+package com.coursemong.back.datecourse.dto;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
+import java.time.LocalDateTime;
+import java.util.List;
+
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class DateCourseTempResponse {
+    private String tempId;
+    private String title;
+    private String area;
+    private List<ActivityTempResponse> activities;
+
+    public static DateCourseTempResponse fromRequest(DateCourseRequest request, String tempId) {
+        return DateCourseTempResponse.builder()
+                .tempId(tempId)
+                .title(request.getTitle())
+                .area(request.getArea())
+                .activities(request.getActivities().stream()
+                        .map(ActivityTempResponse::fromRequest)
+                        .toList())
+                .build();
+    }
+
+    public DateCourseRequest toRequest() {
+        List<ActivityRequest> activityRequests = this.activities.stream()
+                .map(ActivityTempResponse::toRequest)
+                .toList();
+        return new DateCourseRequest(this.title, this.area, false, activityRequests);
+    }
+
+    public DateCourseRequest toRequest(boolean published) {
+        List<ActivityRequest> activityRequests = this.activities.stream()
+                .map(ActivityTempResponse::toRequest)
+                .toList();
+        return new DateCourseRequest(this.title, this.area, published, activityRequests);
+    }
+
+    public DateCourseRequest toRequest(boolean published, String customTitle) {
+        List<ActivityRequest> activityRequests = this.activities.stream()
+                .map(ActivityTempResponse::toRequest)
+                .toList();
+        String finalTitle = (customTitle != null && !customTitle.isBlank()) ? customTitle : this.title;
+        return new DateCourseRequest(finalTitle, this.area, published, activityRequests);
+    }
+}
+

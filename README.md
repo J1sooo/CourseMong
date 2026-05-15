@@ -157,16 +157,20 @@ Redis 임시 저장 (tempId, TTL 6h)
 | address | VARCHAR(50) | 주소 |
 | latitude | DOUBLE | 위도 |
 | longitude | DOUBLE | 경도 |
-
+ 
 ## 📡 API 명세
-
+ 
 | Method | URL | 설명 |
-|--------|-----|------|
-| POST | `/api/gemini` | AI 코스 추천 생성 |
+|---|---|---|
+| POST | `/api/gemini` | AI 데이트 코스 추천 생성 |
+| GET | `/api/date-courses/board` | 게시판 공개 코스 목록 조회 |
+| GET | `/api/date-courses?uuid={courseUuid}` | UUID로 코스 조회 |
+| GET | `/api/date-courses/{courseId}` | ID로 코스 조회 |
+| POST | `/api/date-courses` | 코스 직접 생성 (테스트용) |
+| DELETE | `/api/date-courses/{courseId}` | 코스 삭제 |
+| PATCH | `/api/date-courses/{uuid}/publish` | 코스 게시판 공개 전환 |
+| POST | `/api/date-courses/temporary` | Redis 임시 코스 저장 |
 | GET | `/api/date-courses/temporary/{tempId}` | Redis 임시 코스 조회 |
 | PATCH | `/api/date-courses/temporary/{tempId}/activities/{type}` | 활동 부분 재추천 |
-| POST | `/api/date-courses/temporary/{tempId}` | 임시 코스 DB 저장 확정 |
-| GET | `/api/date-courses?uuid={courseUuid}` | UUID로 코스 조회 |
-| GET | `/api/date-courses/board` | 게시판 공개 코스 목록 |
-| PATCH | `/api/date-courses/{uuid}/publish` | 코스 게시판 공개 |
-
+| POST | `/api/date-courses/temporary/{tempId}?published=&title=` | 임시 코스 DB 저장 확정 |
+| GET | `/api/kakao/search?query=&page=&size=` | 카카오 장소 키워드 검색 |

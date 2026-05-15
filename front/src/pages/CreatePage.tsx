@@ -87,7 +87,7 @@ function Select({ id, label, value, options, placeholder, disabled = false, onCh
         value={value}
         disabled={disabled}
         onChange={(e) => onChange(e.target.value)}
-        className={`w-full px-4 py-2.5 rounded-full border border-[#ea85a2] text-sm bg-white dark:bg-black text-[#ff5283] outline-none appearance-none cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed`}
+        className="w-full px-4 py-2.5 rounded-full border border-[#ea85a2] text-sm bg-white dark:bg-black text-[#ff5283] outline-none appearance-none cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
       >
         <option value="">{placeholder}</option>
         {options.map((opt) => (
@@ -100,9 +100,21 @@ function Select({ id, label, value, options, placeholder, disabled = false, onCh
 
 // ─── 섹션 헤더 컴포넌트 ──────────────────────────────────────────────────────
 
-function SectionTitle({ children }: { children: React.ReactNode }) {
+interface SectionTitleProps {
+  children: React.ReactNode
+  badge?: '필수' | '선택'
+}
+
+function SectionTitle({ children, badge }: SectionTitleProps) {
   return (
-    <h2 className="text-xl font-semibold text-black dark:text-white">{children}</h2>
+    <div className="flex items-center gap-2">
+      <h2 className="text-xl font-semibold text-black dark:text-white">{children}</h2>
+      {badge && (
+        <span className={`text-xs font-normal ${badge === '필수' ? 'text-[#ff5283]' : 'text-gray-400'}`}>
+          {badge}
+        </span>
+      )}
+    </div>
   )
 }
 
@@ -130,9 +142,6 @@ function CreatePage() {
 
   // 활동 (type → category 맵)
   const [activities, setActivities] = useState<Map<ActivityType, string>>(new Map())
-
-  // 공개 여부
-  // const [published, setPublished] = useState(false) — ResultPage에서 관리
 
   // ─── 지역 핸들러 ───────────────────────────────────────────────────────────
   const districts = city ? Object.keys(REGIONS[city] ?? {}) : []
@@ -241,7 +250,7 @@ function CreatePage() {
 
         {/* 지역 */}
         <section className="flex flex-col gap-3">
-          <SectionTitle>지역</SectionTitle>
+          <SectionTitle badge="필수">지역</SectionTitle>
           <div className="flex gap-2">
             <Select
               id="city"
@@ -274,20 +283,20 @@ function CreatePage() {
 
         {/* 날짜 */}
         <section className="flex flex-col gap-3">
-          <SectionTitle>날짜</SectionTitle>
+          <SectionTitle badge="선택">날짜</SectionTitle>
           <label htmlFor="date" className="sr-only">날짜 선택</label>
           <input
             id="date"
             type="date"
             value={date}
             onChange={(e) => setDate(e.target.value)}
-            className="w-full px-4 py-2.5 rounded-full border border-[#ea85a2] text-sm text-[#ff5283] bg-white dark:bg-black outline-none cursor-pointer"
+            className="w-full px-4 py-2.5 rounded-full border border-[#ea85a2] text-sm text-[#ff5283] bg-white dark:bg-black outline-none appearance-none cursor-pointer"
           />
         </section>
 
         {/* 관계 */}
         <section className="flex flex-col gap-3">
-          <SectionTitle>관계</SectionTitle>
+          <SectionTitle badge="필수">관계</SectionTitle>
           <div className="flex flex-wrap gap-2">
             {RELATIONSHIPS.map((rel) => (
               <Chip
@@ -303,7 +312,7 @@ function CreatePage() {
         {/* 공통 취미 */}
         <section className="flex flex-col gap-3">
           <div className="flex items-center justify-between">
-            <SectionTitle>공통 취미</SectionTitle>
+            <SectionTitle badge="선택">공통 취미</SectionTitle>
             <span className="text-sm text-gray-400">{hobbies.length}/3</span>
           </div>
           <p className="text-xs text-gray-400">최대 3개까지 선택할 수 있어요</p>
@@ -321,7 +330,7 @@ function CreatePage() {
 
         {/* 테마 */}
         <section className="flex flex-col gap-3">
-          <SectionTitle>테마</SectionTitle>
+          <SectionTitle badge="선택">테마</SectionTitle>
           <div className="flex flex-wrap gap-2">
             {THEMES.map((t) => (
               <Chip
@@ -336,7 +345,7 @@ function CreatePage() {
 
         {/* 추천받고 싶은 활동 */}
         <section className="flex flex-col gap-4">
-          <SectionTitle>추천받고 싶은 활동</SectionTitle>
+          <SectionTitle badge="필수">추천받고 싶은 활동</SectionTitle>
 
           {/* 활동 타입 선택 */}
           <div className="flex flex-wrap gap-2">

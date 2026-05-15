@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -119,17 +120,18 @@ public class GeminiService {
 
     private String buildUpdatePromptJson(UpdateActivityRequest request, List<KakaoPlaceDto> candidates) {
         try {
-            Map<String, Object> prompt = Map.of(
-                    "area", request.area(),
-                    "relationship", request.relationship(),
-                    "hobby", request.hobby(),
-                    "theme", request.theme(),
-                    "activityType", request.activityType(),
-                    "category", request.category(),
-                    "updateReason", request.updateReason(),
-                    "excludeLocationName", request.excludeLocationName(),
-                    "candidates", candidates
-            );
+            Map<String, Object> prompt = new HashMap<>();
+            prompt.put("area", request.area());
+            prompt.put("relationship", request.relationship());
+            prompt.put("hobby", request.hobby());
+            prompt.put("theme", request.theme());
+            prompt.put("activityType", request.activityType());
+            prompt.put("category", request.category());
+            prompt.put("excludeLocationName", request.excludeLocationName());
+            prompt.put("candidates", candidates);
+            if (request.updateReason() != null) {
+                prompt.put("updateReason", request.updateReason());
+            }
             return objectMapper.writeValueAsString(prompt);
         } catch (Exception e) {
             log.error("수정 프롬프트 JSON 직렬화 실패: {}", e.getMessage());

@@ -24,7 +24,7 @@ export interface UpdateActivityRequest {
   activityType: ActivityType
   category: string
   excludeLocationName: string
-  updateReason: UpdateReason
+  updateReason?: UpdateReason
 }
 
 // CreatePage에서 localStorage에 저장하는 원본 요청 데이터

@@ -24,6 +24,9 @@ const UPDATE_REASONS: { label: string; value: UpdateReason }[] = [
   { label: '✅ 가봤어요', value: 'ALREADY_BEEN' },
 ]
 
+const isFailed = (activity: ActivityTempResponse) =>
+  activity.latitude === 0 && activity.longitude === 0
+
 // ─── 재추천 모달 ──────────────────────────────────────────────────────────────
 
 interface RecommendModalProps {
@@ -155,10 +158,13 @@ interface ActivityCardProps {
   isLast: boolean
   isUpdating: boolean
   onRecommend: (activity: ActivityTempResponse) => void
+  onRetry: (activity: ActivityTempResponse) => void
 }
 
-function ActivityCard({ activity, isLast, isUpdating, onRecommend }: ActivityCardProps) {
+function ActivityCard({ activity, isLast, isUpdating, onRecommend, onRetry }: ActivityCardProps) {
   const type = activity.activityType
+  const failed = isFailed(activity)
+
   return (
     <li className="flex flex-col">
       <div className="relative bg-[#ffeef3] dark:bg-zinc-800 rounded-2xl p-4 flex gap-3">
@@ -166,6 +172,15 @@ function ActivityCard({ activity, isLast, isUpdating, onRecommend }: ActivityCar
           <div className="absolute inset-0 rounded-2xl bg-white/70 dark:bg-black/70 flex items-center justify-center z-10">
             <span className="loading loading-spinner loading-md text-[#ff5283]" />
           </div>
+        )}
+        {failed && !isUpdating && (
+          <button
+            type="button"
+            onClick={() => onRetry(activity)}
+            className="absolute top-3 right-3 px-2.5 py-1 rounded-full bg-[#ff5283] text-white text-xs font-medium hover:opacity-80 transition-opacity cursor-pointer z-10"
+          >
+            재시도
+          </button>
         )}
         <div className="flex flex-col items-center shrink-0">
           <div className="w-14 h-14 rounded-full bg-gradient-to-br from-[#fddbf2] to-[#e479c4] flex items-center justify-center text-2xl">
@@ -180,18 +195,20 @@ function ActivityCard({ activity, isLast, isUpdating, onRecommend }: ActivityCar
           {activity.address && (
             <p className="text-xs text-gray-400 dark:text-gray-500 truncate">📍 {activity.address}</p>
           )}
-          <div className="flex gap-2 mt-2">
-            <button type="button" onClick={() => onRecommend(activity)} disabled={isUpdating}
-              className="px-4 py-1.5 rounded-xl bg-[#eaeaea] dark:bg-zinc-700 text-black dark:text-white text-xs font-medium hover:opacity-80 transition-opacity cursor-pointer disabled:opacity-50">
-              재추천 받기
-            </button>
-            {activity.locationUrl && (
-              <a href={activity.locationUrl} target="_blank" rel="noopener noreferrer"
-                className="px-4 py-1.5 rounded-xl bg-[#ff5283] text-white text-xs font-medium hover:opacity-90 transition-opacity">
-                상세 보기
-              </a>
-            )}
-          </div>
+          {!failed && (
+            <div className="flex gap-2 mt-2">
+              <button type="button" onClick={() => onRecommend(activity)} disabled={isUpdating}
+                className="px-4 py-1.5 rounded-xl bg-[#eaeaea] dark:bg-zinc-700 text-black dark:text-white text-xs font-medium hover:opacity-80 transition-opacity cursor-pointer disabled:opacity-50">
+                재추천 받기
+              </button>
+              {activity.locationUrl && (
+                <a href={activity.locationUrl} target="_blank" rel="noopener noreferrer"
+                  className="px-4 py-1.5 rounded-xl bg-[#ff5283] text-white text-xs font-medium hover:opacity-90 transition-opacity">
+                  상세 보기
+                </a>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </li>
@@ -241,12 +258,10 @@ function ResultPage() {
     enabled: !!tempId,
   })
 
-  // 임시 코스 저장 (타이머보다 먼저)
   useEffect(() => {
     if (data && tempId) tempCourseStorage.save({ tempId, area: data.area })
   }, [data, tempId])
 
-  // 카운트다운 타이머 — data 로드 후 저장된 createdAt 기준으로 실행
   useEffect(() => {
     const stored = tempCourseStorage.getAll().find((c) => c.tempId === tempId)
     if (!stored) return
@@ -265,7 +280,7 @@ function ResultPage() {
   }, [tempId, data?.area])
 
   const { mutate: updateActivity } = useMutation({
-    mutationFn: ({ activity, reason }: { activity: ActivityTempResponse; reason: UpdateReason }) => {
+    mutationFn: ({ activity, reason }: { activity: ActivityTempResponse; reason?: UpdateReason }) => {
       const originalActivity = savedRequest?.activities.find((a) => a.type === activity.activityType)
       return courseApi.updateActivity(tempId!, activity.activityType, {
         area: data?.area ?? savedRequest?.area ?? '',
@@ -304,6 +319,11 @@ function ResultPage() {
     setUpdatingType(selectedActivity.activityType)
     setSelectedActivity(null)
     updateActivity({ activity: selectedActivity, reason })
+  }
+
+  const handleRetry = (activity: ActivityTempResponse) => {
+    setUpdatingType(activity.activityType)
+    updateActivity({ activity })
   }
 
   return (
@@ -366,7 +386,8 @@ function ResultPage() {
                     <ActivityCard key={activity.activityType} activity={activity}
                       isLast={idx === sortedActivities.length - 1}
                       isUpdating={updatingType === activity.activityType}
-                      onRecommend={setSelectedActivity} />
+                      onRecommend={setSelectedActivity}
+                      onRetry={handleRetry} />
                   ))}
               </ul>
             </div>
@@ -391,14 +412,14 @@ function ResultPage() {
               ⏳ {remaining || '시간 계산 중...'} 후에 사라져요
             </p>
             <div className="flex flex-col gap-3 w-full mt-2">
-            <button type="button" onClick={() => setShowTitleModal(true)} disabled={isSaving}
-              className="w-full py-4 rounded-full bg-[#ff5283] text-white font-bold text-base hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-60">
-              확정하기
-            </button>
-            <button type="button" onClick={() => setShowLeaveModal(true)}
-              className="w-full py-4 rounded-full border-2 border-[#ea85a2] text-[#ff5283] font-bold text-base bg-white dark:bg-black hover:bg-[#fff5f7] dark:hover:bg-zinc-900 transition-colors cursor-pointer">
-              다시 만들기
-            </button>
+              <button type="button" onClick={() => setShowTitleModal(true)} disabled={isSaving}
+                className="w-full py-4 rounded-full bg-[#ff5283] text-white font-bold text-base hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-60">
+                확정하기
+              </button>
+              <button type="button" onClick={() => setShowLeaveModal(true)}
+                className="w-full py-4 rounded-full border-2 border-[#ea85a2] text-[#ff5283] font-bold text-base bg-white dark:bg-black hover:bg-[#fff5f7] dark:hover:bg-zinc-900 transition-colors cursor-pointer">
+                다시 만들기
+              </button>
             </div>
           </div>
         )}

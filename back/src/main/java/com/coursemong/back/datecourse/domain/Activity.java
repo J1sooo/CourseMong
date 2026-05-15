@@ -32,19 +32,11 @@ public class Activity {
     @Column(name = "address", nullable = true)
     private String address;
 
-    // h2 임시 코드
     @Column(name = "latitude", nullable = false)
     private Double latitude;
 
     @Column(name = "longitude", nullable = false)
     private Double longitude;
-
-//    mysql 코드
-//    @Column(columnDefinition = "DECIMAL(10,8)", nullable = false)
-//    private BigDecimal latitude;
-//
-//    @Column(columnDefinition = "DECIMAL(11,8)", nullable = false)
-//    private BigDecimal longitude;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "course_id", nullable = false)

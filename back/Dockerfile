@@ -20,4 +20,4 @@ COPY --from=builder /app/build/libs/*.jar app.jar
 
 EXPOSE 8080
 
-ENTRYPOINT ["java", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-Dloader.path=/app/BOOT-INF/classes", "-cp", "app.jar", "org.springframework.boot.loader.launch.PropertiesLauncher"]

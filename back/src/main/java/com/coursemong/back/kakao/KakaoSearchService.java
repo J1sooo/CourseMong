@@ -40,4 +40,44 @@ public class KakaoSearchService {
             return List.of();
         }
     }
+
+    public List<String> searchPlaceNames(String query, int size) {
+        try {
+            String apiUrl = "https://dapi.kakao.com/v2/local/search/keyword.json"
+                    + "?query=" + query
+                    + "&size=" + size;
+
+            String responseBody = kakaoApiClient.search(apiUrl);
+            JsonNode documents = objectMapper.readTree(responseBody).get("documents");
+
+            List<String> names = new ArrayList<>();
+            for (JsonNode doc : documents) {
+                names.add(doc.get("place_name").asText());
+            }
+            return names;
+        } catch (Exception e) {
+            log.error("카카오 장소명 검색 실패: {}", e.getMessage());
+            return List.of();
+        }
+    }
+
+    public List<String> searchAddressNames(String query, int size) {
+        try {
+            String apiUrl = "https://dapi.kakao.com/v2/local/search/address.json"
+                    + "?query=" + query
+                    + "&size=" + size;
+
+            String responseBody = kakaoApiClient.search(apiUrl);
+            JsonNode documents = objectMapper.readTree(responseBody).get("documents");
+
+            List<String> names = new ArrayList<>();
+            for (JsonNode doc : documents) {
+                names.add(doc.get("address_name").asText());
+            }
+            return names;
+        } catch (Exception e) {
+            log.error("카카오 주소 검색 실패: {}", e.getMessage());
+            return List.of();
+        }
+    }
 }

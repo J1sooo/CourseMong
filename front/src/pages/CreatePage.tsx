@@ -1,8 +1,8 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useMutation } from '@tanstack/react-query'
-import { REGIONS } from '@/data/regions'
 import { geminiApi } from '@/api/geminiApi'
+import { kakaoApi } from '@/api/kakaoApi'
 import Header from '@/components/Header'
 import type { ActivityType } from '@/types/course'
 import type { ActivityInput, SavedCourseRequest } from '@/types/gemini'
@@ -66,34 +66,137 @@ function Chip({ label, selected, onClick }: ChipProps) {
   )
 }
 
-// ─── 셀렉트 컴포넌트 ──────────────────────────────────────────────────────────
+// ─── 지역 검색 컴포넌트 ───────────────────────────────────────────────────────
 
-interface SelectProps {
-  id: string
-  label: string
+type AreaTab = 'place' | 'address'
+
+interface AreaSearchProps {
   value: string
-  options: string[]
-  placeholder: string
-  disabled?: boolean
   onChange: (value: string) => void
 }
 
-function Select({ id, label, value, options, placeholder, disabled = false, onChange }: SelectProps) {
+function AreaSearch({ value, onChange }: AreaSearchProps) {
+  const [tab, setTab] = useState<AreaTab>('place')
+  const [input, setInput] = useState('')
+  const [suggestions, setSuggestions] = useState<string[]>([])
+  const [noResults, setNoResults] = useState(false)
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setSuggestions([])
+        setNoResults(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  const handleTabChange = (next: AreaTab) => {
+    setTab(next)
+    setInput('')
+    setSuggestions([])
+    setNoResults(false)
+  }
+
+  const handleInput = (val: string) => {
+    setInput(val)
+    onChange('')
+    setNoResults(false)
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    if (val.trim().length < 2) { setSuggestions([]); return }
+    debounceRef.current = setTimeout(() => {
+      const fn = tab === 'place' ? kakaoApi.searchPlace : kakaoApi.searchAddress
+      fn(val)
+        .then((results) => {
+          setSuggestions(results)
+          setNoResults(results.length === 0)
+        })
+        .catch(() => setNoResults(true))
+    }, 1000)
+  }
+
+  const handleSelect = (name: string) => {
+    setInput(name)
+    onChange(name)
+    setSuggestions([])
+    setNoResults(false)
+  }
+
+  const handleClear = () => {
+    setInput('')
+    onChange('')
+    setSuggestions([])
+    setNoResults(false)
+  }
+
   return (
-    <div className="flex flex-col gap-1 flex-1">
-      <label htmlFor={id} className="sr-only">{label}</label>
-      <select
-        id={id}
-        value={value}
-        disabled={disabled}
-        onChange={(e) => onChange(e.target.value)}
-        className="w-full px-4 py-2.5 rounded-full border border-[#ea85a2] text-sm bg-white dark:bg-black text-[#ff5283] outline-none appearance-none cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
-      >
-        <option value="">{placeholder}</option>
-        {options.map((opt) => (
-          <option key={opt} value={opt}>{opt}</option>
+    <div ref={containerRef} className="flex flex-col gap-2">
+      {/* 탭 */}
+      <div className="flex gap-2">
+        {(['place', 'address'] as AreaTab[]).map((t) => (
+          <button
+            key={t}
+            type="button"
+            onClick={() => handleTabChange(t)}
+            className={`px-4 py-2 rounded-full text-sm border transition-colors cursor-pointer ${
+              tab === t
+                ? 'bg-[#ff5283] border-[#ff5283] text-white'
+                : 'bg-white dark:bg-black border-[#ea85a2] text-[#ff5283] hover:bg-[#fff5f7] dark:hover:bg-zinc-900'
+            }`}
+          >
+            {t === 'place' ? '장소로 찾기' : '주소로 찾기'}
+          </button>
         ))}
-      </select>
+      </div>
+
+      {/* 입력 */}
+      <div className="relative">
+        <input
+          value={input}
+          onChange={(e) => handleInput(e.target.value)}
+          placeholder={tab === 'place' ? '장소명을 입력하세요 (예: 강남역, 롯데월드)' : '주소를 입력하세요 (예: 서울 강남구)'}
+          className={`w-full px-4 py-2.5 pr-10 rounded-full border text-sm bg-white dark:bg-black text-[#ff5283] outline-none transition-colors ${
+            value ? 'border-[#ff5283]' : 'border-[#ea85a2]'
+          }`}
+        />
+        {input && (
+          <button
+            type="button"
+            onClick={handleClear}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-[#ea85a2] hover:text-[#ff5283] text-lg leading-none cursor-pointer"
+          >
+            ×
+          </button>
+        )}
+
+        {/* 드롭다운 */}
+        {suggestions.length > 0 && (
+          <ul className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-black border border-[#ea85a2] rounded-2xl shadow-md z-10 overflow-hidden">
+            {suggestions.map((name) => (
+              <li
+                key={name}
+                onMouseDown={() => handleSelect(name)}
+                className="px-4 py-3 text-sm text-black dark:text-white cursor-pointer hover:bg-[#fff5f7] dark:hover:bg-zinc-900 border-b border-[#fce4ec] last:border-0"
+              >
+                {name}
+              </li>
+            ))}
+          </ul>
+        )}
+        {noResults && (
+          <p className="absolute top-full left-0 right-0 mt-1 px-4 py-3 text-sm text-gray-400 bg-white dark:bg-black border border-[#ea85a2] rounded-2xl shadow-md z-10">
+            찾을 수 없습니다
+          </p>
+        )}
+      </div>
+
+      {/* 선택 완료 표시 */}
+      {value && (
+        <p className="text-xs text-[#ff5283] px-1">선택된 지역: {value}</p>
+      )}
     </div>
   )
 }
@@ -124,9 +227,7 @@ function CreatePage() {
   const navigate = useNavigate()
 
   // 지역
-  const [city, setCity] = useState('')
-  const [district, setDistrict] = useState('')
-  const [town, setTown] = useState('')
+  const [area, setArea] = useState('')
 
   // 날짜
   const [date, setDate] = useState('')
@@ -142,21 +243,6 @@ function CreatePage() {
 
   // 활동 (type → category 맵)
   const [activities, setActivities] = useState<Map<ActivityType, string>>(new Map())
-
-  // ─── 지역 핸들러 ───────────────────────────────────────────────────────────
-  const districts = city ? Object.keys(REGIONS[city] ?? {}) : []
-  const towns = city && district ? (REGIONS[city]?.[district] ?? []) : []
-
-  const handleCityChange = (value: string) => {
-    setCity(value)
-    setDistrict('')
-    setTown('')
-  }
-
-  const handleDistrictChange = (value: string) => {
-    setDistrict(value)
-    setTown('')
-  }
 
   // ─── 취미 핸들러 ───────────────────────────────────────────────────────────
   const toggleHobby = (hobby: string) => {
@@ -190,9 +276,7 @@ function CreatePage() {
 
   // ─── 초기화 ────────────────────────────────────────────────────────────────
   const handleReset = () => {
-    setCity('')
-    setDistrict('')
-    setTown('')
+    setArea('')
     setDate('')
     setRelationship('')
     setHobbies([])
@@ -205,7 +289,7 @@ function CreatePage() {
     mutationFn: geminiApi.recommend,
     onSuccess: (data) => {
       const savedRequest: SavedCourseRequest = {
-        area: [city, district, town].filter(Boolean).join(' '),
+        area,
         relationship,
         hobby: hobbies,
         theme,
@@ -217,7 +301,6 @@ function CreatePage() {
   })
 
   const handleSubmit = () => {
-    const area = [city, district, town].filter(Boolean).join(' ')
     if (!area) return alert('지역을 선택해주세요.')
     if (!relationship) return alert('관계를 선택해주세요.')
     if (activities.size === 0) return alert('활동을 1개 이상 선택해주세요.')
@@ -251,34 +334,7 @@ function CreatePage() {
         {/* 지역 */}
         <section className="flex flex-col gap-3">
           <SectionTitle badge="필수">지역</SectionTitle>
-          <div className="flex gap-2">
-            <Select
-              id="city"
-              label="시/도 선택"
-              value={city}
-              options={Object.keys(REGIONS)}
-              placeholder="시/도"
-              onChange={handleCityChange}
-            />
-            <Select
-              id="district"
-              label="구/군 선택"
-              value={district}
-              options={districts}
-              placeholder="구/군"
-              disabled={!city}
-              onChange={handleDistrictChange}
-            />
-          </div>
-          <Select
-            id="town"
-            label="읍면동 선택"
-            value={town}
-            options={towns}
-            placeholder="읍/면/동"
-            disabled={!district}
-            onChange={setTown}
-          />
+          <AreaSearch value={area} onChange={setArea} />
         </section>
 
         {/* 날짜 */}

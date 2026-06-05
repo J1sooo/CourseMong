@@ -23,4 +23,20 @@ public class KakaoSearchController {
     ) {
         return kakaoSearchService.searchPlaces(query, page, size);
     }
+
+    @GetMapping("/place")
+    public List<String> searchPlace(
+            @RequestParam String query,
+            @RequestParam(defaultValue = "5") int size
+    ) {
+        return kakaoSearchService.searchPlaceNames(query, size);
+    }
+
+    @GetMapping("/address")
+    public List<String> searchAddress(
+            @RequestParam String query,
+            @RequestParam(defaultValue = "5") int size
+    ) {
+        return kakaoSearchService.searchAddressNames(query, size);
+    }
 }

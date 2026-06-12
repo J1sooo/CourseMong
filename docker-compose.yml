@@ -51,6 +51,7 @@ services:
       SPRING_SQL_INIT_MODE: never
       CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS}
       KAKAO_REST_API_KEY: ${KAKAO_REST_API_KEY}
+      KAKAO_ORIGIN: ${KAKAO_ORIGIN}
       GOOGLE_API_KEY: ${GOOGLE_API_KEY}
     volumes:
       - ./prompts/gemini-system.txt:/app/BOOT-INF/classes/prompts/gemini-system.txt:ro

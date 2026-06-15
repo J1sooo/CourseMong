@@ -18,6 +18,9 @@ public class KakaoApiClient {
     @Value("${KAKAO_REST_API_KEY}")
     private String kakaoRestApiKey;
 
+    @Value("${kakao.origin}")
+    private String kakaoOrigin;
+
     @Retryable(
             retryFor = {Exception.class},
             maxAttempts = 3,
@@ -29,7 +32,7 @@ public class KakaoApiClient {
 
             HttpHeaders headers = new HttpHeaders();
             headers.set("Authorization", "KakaoAK " + kakaoRestApiKey);
-            headers.set("KA", "sdk/v2 os/javascript lang/ko device/web origin/http://localhost:8080");
+            headers.set("KA", "sdk/v2 os/javascript lang/ko device/web origin/" + kakaoOrigin);
 
             HttpEntity<?> entity = new HttpEntity<>(headers);
 

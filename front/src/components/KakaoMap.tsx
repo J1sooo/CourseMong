@@ -21,20 +21,30 @@ declare global {
 
 function KakaoMap({ activities }: KakaoMapProps) {
   const mapRef = useRef<HTMLDivElement>(null)
+  const mapInstanceRef = useRef<any>(null)
+  const overlaysRef = useRef<any[]>([])
+  const polylineRef = useRef<any>(null)
 
   const sorted = [...activities]
     .filter((a) => a.latitude !== 0 && a.longitude !== 0)
     .sort((a, b) => ACTIVITY_ORDER.indexOf(a.activityType) - ACTIVITY_ORDER.indexOf(b.activityType))
 
+  // 좌표 변경 감지용 key — 위/경도가 바뀌면 이펙트 재실행
+  const coordKey = sorted.map((a) => `${a.activityType}:${a.latitude},${a.longitude}`).join('|')
+
   useEffect(() => {
     if (!mapRef.current || sorted.length === 0) return
 
-    const init = () => {
-      const { kakao } = window
-      if (!kakao?.maps) return
+    const draw = (map: any) => {
+      // 기존 마커 제거
+      overlaysRef.current.forEach((o) => o.setMap(null))
+      overlaysRef.current = []
 
-      const center = new kakao.maps.LatLng(sorted[0].latitude, sorted[0].longitude)
-      const map = new kakao.maps.Map(mapRef.current, { center, level: 5 })
+      // 기존 폴리라인 제거
+      polylineRef.current?.setMap(null)
+      polylineRef.current = null
+
+      const { kakao } = window
       const coords: any[] = []
 
       sorted.forEach((activity, idx) => {
@@ -50,17 +60,21 @@ function KakaoMap({ activities }: KakaoMapProps) {
             box-shadow: 0 2px 6px rgba(0,0,0,0.25); border: 2px solid white;
           ">${idx + 1}</div>
         `
-        new kakao.maps.CustomOverlay({ position: pos, content, yAnchor: 1 }).setMap(map)
+        const overlay = new kakao.maps.CustomOverlay({ position: pos, content, yAnchor: 1 })
+        overlay.setMap(map)
+        overlaysRef.current.push(overlay)
       })
 
       if (coords.length > 1) {
-        new kakao.maps.Polyline({
+        const polyline = new kakao.maps.Polyline({
           path: coords,
           strokeWeight: 2,
           strokeColor: '#ff5283',
           strokeOpacity: 0.7,
           strokeStyle: 'shortdash',
-        }).setMap(map)
+        })
+        polyline.setMap(map)
+        polylineRef.current = polyline
 
         const bounds = new kakao.maps.LatLngBounds()
         coords.forEach((c) => bounds.extend(c))
@@ -68,16 +82,36 @@ function KakaoMap({ activities }: KakaoMapProps) {
       }
     }
 
-    if (window.kakao?.maps) {
-      init()
-      return
+    const init = () => {
+      const { kakao } = window
+      // mapRef.current null 이중 체크 (StrictMode 재마운트 타이밍 대응)
+      if (!kakao?.maps || !mapRef.current) return
+
+      if (!mapInstanceRef.current) {
+        const center = new kakao.maps.LatLng(sorted[0].latitude, sorted[0].longitude)
+        mapInstanceRef.current = new kakao.maps.Map(mapRef.current, { center, level: 5 })
+      }
+
+      draw(mapInstanceRef.current)
     }
 
-    const script = document.createElement('script')
-    script.src = `//dapi.kakao.com/v2/maps/sdk.js?appkey=${import.meta.env.VITE_KAKAO_MAP_KEY}&autoload=false`
-    script.onload = () => window.kakao.maps.load(init)
-    document.head.appendChild(script)
-  }, [sorted.length])
+    if (window.kakao?.maps) {
+      init()
+    } else if (!document.querySelector('script[src*="dapi.kakao.com"]')) {
+      const script = document.createElement('script')
+      script.src = `//dapi.kakao.com/v2/maps/sdk.js?appkey=${import.meta.env.VITE_KAKAO_MAP_KEY}&autoload=false`
+      script.onload = () => window.kakao.maps.load(init)
+      document.head.appendChild(script)
+    } else {
+      window.kakao?.maps?.load(init)
+    }
+
+    return () => {
+      mapInstanceRef.current = null
+      overlaysRef.current = []
+      polylineRef.current = null
+    }
+  }, [coordKey])
 
   if (sorted.length === 0) return null
 

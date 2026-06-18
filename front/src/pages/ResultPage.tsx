@@ -244,6 +244,12 @@ function ResultPage() {
   const [showLeaveModal, setShowLeaveModal] = useState(false)
   const [remaining, setRemaining] = useState('')
   const [published, setPublished] = useState(false)
+  const [toast, setToast] = useState<string | null>(null)
+
+  const showToast = (message: string) => {
+    setToast(message)
+    setTimeout(() => setToast(null), 2500)
+  }
 
   const savedRequest: SavedCourseRequest | null = (() => {
     try {
@@ -295,7 +301,10 @@ function ResultPage() {
       queryClient.setQueryData(['tempCourse', tempId], updated)
       setUpdatingType(null)
     },
-    onError: () => setUpdatingType(null),
+    onError: () => {
+      setUpdatingType(null)
+      showToast('AI 요청이 많습니다. 잠시 후 다시 눌러주세요 🙏')
+    },
   })
 
   const { mutate: saveCourse, isPending: isSaving } = useMutation({
@@ -326,6 +335,12 @@ function ResultPage() {
 
   return (
     <div className="min-h-screen bg-white dark:bg-black">
+
+      {toast && (
+        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50 px-5 py-3 rounded-full bg-zinc-800 text-white text-sm font-medium shadow-lg whitespace-nowrap">
+          {toast}
+        </div>
+      )}
 
       {isSaving && (
         <div className="fixed inset-0 z-50 bg-white/80 dark:bg-black/80 flex flex-col items-center justify-center gap-4">

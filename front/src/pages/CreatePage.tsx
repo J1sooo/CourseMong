@@ -285,6 +285,13 @@ function CreatePage() {
   }
 
   // ─── 제출 ──────────────────────────────────────────────────────────────────
+  const [errorMessage, setErrorMessage] = useState('')
+
+  const showToast = (message: string) => {
+    setErrorMessage(message)
+    setTimeout(() => setErrorMessage(''), 2500)
+  }
+
   const { mutate, isPending } = useMutation({
     mutationFn: geminiApi.recommend,
     onSuccess: (data) => {
@@ -298,6 +305,7 @@ function CreatePage() {
       localStorage.setItem(`courseRequest:${data.tempId}`, JSON.stringify(savedRequest))
       navigate(`/result/${data.tempId}`)
     },
+    onError: () => showToast('AI 요청이 많습니다. 잠시 후 다시 눌러주세요 🙏'),
   })
 
   const handleSubmit = () => {
@@ -326,6 +334,12 @@ function CreatePage() {
   // ─── 렌더 ──────────────────────────────────────────────────────────────────
   return (
     <div className="min-h-screen bg-white dark:bg-black">
+
+      {errorMessage && (
+        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50 px-5 py-3 rounded-full bg-zinc-800 text-white text-sm font-medium shadow-lg whitespace-nowrap">
+          {errorMessage}
+        </div>
+      )}
 
       <Header />
 

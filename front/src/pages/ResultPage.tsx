@@ -247,7 +247,7 @@ function ResultPage() {
 
   const savedRequest: SavedCourseRequest | null = (() => {
     try {
-      const raw = localStorage.getItem('courseRequest')
+      const raw = localStorage.getItem(`courseRequest:${tempId}`)
       return raw ? JSON.parse(raw) : null
     } catch { return null }
   })()
@@ -283,13 +283,11 @@ function ResultPage() {
     mutationFn: ({ activity, reason }: { activity: ActivityTempResponse; reason?: UpdateReason }) => {
       const originalActivity = savedRequest?.activities.find((a) => a.type === activity.activityType)
       return courseApi.updateActivity(tempId!, activity.activityType, {
-        area: data?.area ?? savedRequest?.area ?? '',
         relationship: savedRequest?.relationship ?? '',
         hobby: savedRequest?.hobby ?? [],
         theme: savedRequest?.theme ?? '',
         activityType: activity.activityType,
         category: originalActivity?.category ?? '',
-        excludeLocationName: activity.locationName,
         updateReason: reason,
       })
     },
@@ -303,7 +301,7 @@ function ResultPage() {
   const { mutate: saveCourse, isPending: isSaving } = useMutation({
     mutationFn: (title: string) => courseApi.saveCourse(tempId!, published, title),
     onSuccess: (saved) => {
-      localStorage.removeItem('courseRequest')
+      localStorage.removeItem(`courseRequest:${tempId}`)
       tempCourseStorage.remove(tempId!)
       myCourseStorage.save({ uuid: saved.courseUuid, title: saved.title, area: saved.area })
       navigate(`/course/${saved.courseUuid}`)

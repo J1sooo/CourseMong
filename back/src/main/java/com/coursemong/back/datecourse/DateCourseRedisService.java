@@ -57,7 +57,8 @@ public class DateCourseRedisService {
         }
     }
 
-    public DateCourseTempResponse updateActivityByType(String tempId, ActivityType activityType, ActivityRequest newActivity) {
+    public DateCourseTempResponse updateActivityByType(
+            String tempId, ActivityType activityType, ActivityRequest newActivity, List<String> excludedLocationNames) {
         String key = TEMP_KEY_PREFIX + tempId;
         try {
             Object cached = redisTemplate.opsForValue().get(key);
@@ -85,6 +86,7 @@ public class DateCourseRedisService {
                             .address(newActivity.getAddress())
                             .latitude(newActivity.getLatitude())
                             .longitude(newActivity.getLongitude())
+                            .excludedLocationNames(excludedLocationNames)
                             .build());
                     found = true;
                     break;

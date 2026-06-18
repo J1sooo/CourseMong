@@ -295,7 +295,7 @@ function CreatePage() {
         theme,
         activities: [...activities.entries()].map(([type, category]) => ({ type, category })),
       }
-      localStorage.setItem('courseRequest', JSON.stringify(savedRequest))
+      localStorage.setItem(`courseRequest:${data.tempId}`, JSON.stringify(savedRequest))
       navigate(`/result/${data.tempId}`)
     },
   })

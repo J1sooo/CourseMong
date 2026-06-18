@@ -17,13 +17,11 @@ export interface GeminiRequest {
 export type UpdateReason = 'TOO_EXPENSIVE' | 'NOT_GOOD' | 'TOO_FAR' | 'ALREADY_BEEN'
 
 export interface UpdateActivityRequest {
-  area: string
   relationship: string
   hobby: string[]
   theme: string
   activityType: ActivityType
   category: string
-  excludeLocationName: string
   updateReason?: UpdateReason
 }
 

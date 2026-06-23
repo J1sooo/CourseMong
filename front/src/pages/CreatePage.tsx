@@ -35,6 +35,13 @@ const ACTIVITY_LABELS: Record<ActivityType, string> = {
 
 const ACTIVITY_ORDER: ActivityType[] = ['MORNING', 'LUNCH', 'AFTERNOON', 'DINNER']
 
+const LOADING_MESSAGES = [
+  '카카오에서 장소를 찾고 있어요 🔍',
+  'AI가 장소를 검색하는 중이에요 💡',
+  'AI가 코스를 구성하는 중이에요 ✨',
+  '지도에 표시하는 중이에요 📍',
+]
+
 const ACTIVITY_CATEGORIES: Record<ActivityType, string[]> = {
   MORNING: [
     '산책', '카페', '영화관', '미술관', '공연장', '전시관', '팝업스토어',
@@ -377,6 +384,7 @@ function CreatePage() {
 
   // ─── 제출 ──────────────────────────────────────────────────────────────────
   const [errorMessage, setErrorMessage] = useState('')
+  const [loadingMessageIndex, setLoadingMessageIndex] = useState(0)
 
   const showToast = (message: string) => {
     setErrorMessage(message)
@@ -398,6 +406,24 @@ function CreatePage() {
     },
     onError: () => showToast('AI 요청이 많습니다. 잠시 후 다시 눌러주세요 🙏'),
   })
+
+  // 로딩 중 메시지를 3초마다 순환 (마지막 메시지에서 멈추지 않고 계속 반복)
+  // 오버레이가 떠있는 동안 배경 스크롤 방지
+  useEffect(() => {
+    if (!isPending) {
+      setLoadingMessageIndex(0)
+      document.body.style.overflow = ''
+      return
+    }
+    document.body.style.overflow = 'hidden'
+    const interval = setInterval(() => {
+      setLoadingMessageIndex((prev) => (prev + 1) % LOADING_MESSAGES.length)
+    }, 3000)
+    return () => {
+      clearInterval(interval)
+      document.body.style.overflow = ''
+    }
+  }, [isPending])
 
   const handleSubmit = () => {
     if (!area) return alert('지역을 선택해주세요.')
@@ -425,6 +451,13 @@ function CreatePage() {
   // ─── 렌더 ──────────────────────────────────────────────────────────────────
   return (
     <div className="min-h-screen bg-white dark:bg-black">
+
+      {isPending && (
+        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-4 bg-white/80 dark:bg-black/80 backdrop-blur-sm select-none touch-none">
+          <div className="w-10 h-10 border-4 border-[#fce4ec] border-t-[#ff5283] rounded-full animate-spin" />
+          <p className="text-sm font-medium text-[#ff5283]">{LOADING_MESSAGES[loadingMessageIndex]}</p>
+        </div>
+      )}
 
       {errorMessage && (
         <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50 px-5 py-3 rounded-full bg-zinc-800 text-white text-sm font-medium shadow-lg whitespace-nowrap">
@@ -588,7 +621,7 @@ function CreatePage() {
             disabled={isPending}
             className="w-full py-4 rounded-full bg-[#ff5283] text-white font-bold text-base hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-60"
           >
-            {isPending ? '코스 생성 중...' : '코스 보기'}
+            코스 보기
           </button>
           <button
             type="button"

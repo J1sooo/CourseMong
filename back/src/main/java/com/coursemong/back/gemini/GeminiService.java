@@ -31,6 +31,10 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class GeminiService {
 
+    // 제미나이가 거절 문구 등 비-JSON 응답을 반환했을 때 자동 재시도할 최대 횟수
+    // (GeminiApiClient의 @Retryable과는 별개로, 응답은 정상 수신됐지만 내용이 JSON이 아닌 경우를 처리)
+    private static final int MAX_PARSE_ATTEMPTS = 3;
+
     private final GeminiApiClient geminiApiClient;
     private final ObjectMapper objectMapper;
     private final DateCourseRedisService redisService;
@@ -53,10 +57,18 @@ public class GeminiService {
         String promptJson = buildPromptJson(request, activitiesWithCandidates);
         log.debug("제미나이 프롬프트 JSON: {}", promptJson);
 
-        String rawResponse = geminiApiClient.callGemini(promptJson, config);
-        log.debug("제미나이 응답: {}", rawResponse);
-
-        return parseAndSave(rawResponse);
+        RuntimeException lastError = null;
+        for (int attempt = 1; attempt <= MAX_PARSE_ATTEMPTS; attempt++) {
+            String rawResponse = geminiApiClient.callGemini(promptJson, config);
+            log.debug("제미나이 응답 (시도 {}/{}): {}", attempt, MAX_PARSE_ATTEMPTS, rawResponse);
+            try {
+                return parseAndSave(rawResponse);
+            } catch (RuntimeException e) {
+                log.warn("제미나이 응답 파싱 실패, 재시도 {}/{}", attempt, MAX_PARSE_ATTEMPTS);
+                lastError = e;
+            }
+        }
+        throw lastError;
     }
 
     public DateCourseTempResponse updateActivity(String tempId, UpdateActivityRequest request) {
@@ -106,10 +118,18 @@ public class GeminiService {
         String promptJson = buildUpdatePromptJson(currentCourse.getArea(), request, targetActivity.getLocationName(), otherActivities, excludedLocationNames, finalCandidates);
         log.debug("제미나이 수정 프롬프트 JSON: {}", promptJson);
 
-        String rawResponse = geminiApiClient.callGemini(promptJson, config);
-        log.debug("제미나이 수정 응답: {}", rawResponse);
-
-        return parseAndUpdate(tempId, request.activityType(), rawResponse, excludedLocationNames);
+        RuntimeException lastError = null;
+        for (int attempt = 1; attempt <= MAX_PARSE_ATTEMPTS; attempt++) {
+            String rawResponse = geminiApiClient.callGemini(promptJson, config);
+            log.debug("제미나이 수정 응답 (시도 {}/{}): {}", attempt, MAX_PARSE_ATTEMPTS, rawResponse);
+            try {
+                return parseAndUpdate(tempId, request.activityType(), rawResponse, excludedLocationNames);
+            } catch (RuntimeException e) {
+                log.warn("제미나이 수정 응답 파싱 실패, 재시도 {}/{}", attempt, MAX_PARSE_ATTEMPTS);
+                lastError = e;
+            }
+        }
+        throw lastError;
     }
 
     private String loadSystemInstruction(String path) {
@@ -165,6 +185,7 @@ public class GeminiService {
             Map<String, Object> prompt = new HashMap<>();
             prompt.put("area", area);
             prompt.put("relationship", request.relationship());
+            prompt.put("date", request.date() != null ? request.date() : "");
             prompt.put("hobby", request.hobby());
             prompt.put("theme", request.theme());
             prompt.put("activityType", request.activityType());
@@ -183,17 +204,43 @@ public class GeminiService {
         }
     }
 
+    // 응답에서 마지막 완결된 JSON 값(객체 또는 배열)만 추출
+    // 그라운딩 사용 시 Gemini가 검색 결과(candidates 배열 등)를 답 앞에 echo하는 경우가 있어
+    // 단순 첫 '{' ~ 마지막 '}' 방식은 echo된 배열과 실제 답이 뒤섞여 파싱이 깨짐
+    // 중괄호/대괄호 깊이를 추적해 완결된 top-level 값들을 모두 찾고 마지막 값만 사용
     private String extractJson(String rawResponse) {
-        rawResponse = rawResponse.trim();
-        if (rawResponse.startsWith("```")) {
-            rawResponse = rawResponse.replaceAll("^```json\\s*", "").replaceAll("\\s*```$", "").trim();
+        String text = rawResponse.trim();
+        if (text.startsWith("```")) {
+            text = text.replaceAll("^```json\\s*", "").replaceAll("^```\\s*", "").replaceAll("\\s*```$", "").trim();
         }
-        int start = rawResponse.indexOf('{');
-        int end = rawResponse.lastIndexOf('}');
-        if (start != -1 && end != -1 && end > start) {
-            return rawResponse.substring(start, end + 1);
+
+        List<String> topLevelValues = new ArrayList<>();
+        int i = 0;
+        int n = text.length();
+        while (i < n) {
+            char c = text.charAt(i);
+            if (c == '{' || c == '[') {
+                char open = c;
+                char close = (open == '{') ? '}' : ']';
+                int depth = 0;
+                int start = i;
+                while (i < n) {
+                    char cur = text.charAt(i);
+                    if (cur == open) depth++;
+                    else if (cur == close) {
+                        depth--;
+                        if (depth == 0) { i++; break; }
+                    }
+                    i++;
+                }
+                topLevelValues.add(text.substring(start, i));
+            } else {
+                i++;
+            }
         }
-        return rawResponse;
+
+        if (topLevelValues.isEmpty()) return text;
+        return topLevelValues.get(topLevelValues.size() - 1);
     }
 
     private DateCourseTempResponse parseAndSave(String rawResponse) {
@@ -202,7 +249,7 @@ public class GeminiService {
             String tempId = redisService.saveTemporary(aiResponse.toRequest());
             return redisService.getTemporary(tempId);
         } catch (Exception e) {
-            log.error("응답 파싱 및 저장 실패: {}", e.getMessage());
+            log.warn("응답 파싱 및 저장 실패: {}", e.getMessage());
             throw new RuntimeException("응답 파싱 및 저장 실패: " + e.getMessage(), e);
         }
     }
@@ -213,7 +260,7 @@ public class GeminiService {
             ActivityRequest newActivity = objectMapper.readValue(extractJson(rawResponse), ActivityRequest.class);
             return redisService.updateActivityByType(tempId, activityType, newActivity, excludedLocationNames);
         } catch (Exception e) {
-            log.error("수정 응답 파싱 및 업데이트 실패: {}", e.getMessage());
+            log.warn("수정 응답 파싱 및 업데이트 실패: {}", e.getMessage());
             throw new RuntimeException("수정 응답 파싱 및 업데이트 실패: " + e.getMessage(), e);
         }
     }

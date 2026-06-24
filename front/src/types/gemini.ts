@@ -20,6 +20,7 @@ export interface UpdateActivityRequest {
   relationship: string
   hobby: string[]
   theme: string
+  date: string | null
   activityType: ActivityType
   category: string
   updateReason?: UpdateReason
@@ -31,5 +32,6 @@ export interface SavedCourseRequest {
   relationship: string
   hobby: string[]
   theme: string
+  date: string | null
   activities: ActivityInput[]
 }

@@ -9,6 +9,7 @@ public record UpdateActivityRequest(
         String relationship,
         List<String> hobby,
         String theme,
+        String date,
         ActivityType activityType,
         String category,
         UpdateReason updateReason    // 수정 이유 (재시도 시 null)

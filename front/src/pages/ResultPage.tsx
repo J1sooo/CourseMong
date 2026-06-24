@@ -292,6 +292,7 @@ function ResultPage() {
         relationship: savedRequest?.relationship ?? '',
         hobby: savedRequest?.hobby ?? [],
         theme: savedRequest?.theme ?? '',
+        date: savedRequest?.date ?? null,
         activityType: activity.activityType,
         category: originalActivity?.category ?? '',
         updateReason: reason,

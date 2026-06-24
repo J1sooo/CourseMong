@@ -399,6 +399,7 @@ function CreatePage() {
         relationship,
         hobby: hobbies,
         theme,
+        date: date || null,
         activities: [...activities.entries()].map(([type, category]) => ({ type, category })),
       }
       localStorage.setItem(`courseRequest:${data.tempId}`, JSON.stringify(savedRequest))

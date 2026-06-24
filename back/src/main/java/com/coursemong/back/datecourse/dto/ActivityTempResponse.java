@@ -6,6 +6,9 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
@@ -18,6 +21,9 @@ public class ActivityTempResponse {
     private String address;
     private Double latitude;
     private Double longitude;
+
+    @Builder.Default
+    private List<String> excludedLocationNames = new ArrayList<>(); // 재추천 시 제외할 이전 장소 누적 목록
 
     public static ActivityTempResponse fromRequest(ActivityRequest request) {
         return ActivityTempResponse.builder()

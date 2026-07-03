@@ -5,6 +5,7 @@ import CreatePage from '@/pages/CreatePage'
 import ResultPage from '@/pages/ResultPage'
 import CoursePage from '@/pages/CoursePage'
 import MenuPage from '@/pages/MenuPage'
+import DashboardPage from '@/pages/DashboardPage'
 
 const queryClient = new QueryClient()
 
@@ -18,6 +19,7 @@ function App() {
           <Route path="/result/:tempId" element={<ResultPage />} />
           <Route path="/course/:uuid" element={<CoursePage />} />
           <Route path="/menu" element={<MenuPage />} />
+          <Route path="/dashboard" element={<DashboardPage />} />
         </Routes>
       </BrowserRouter>
     </QueryClientProvider>

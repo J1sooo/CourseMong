@@ -1,5 +1,7 @@
 package com.coursemong.back.gemini;
 
+import com.coursemong.back.dashboard.ApiCallCountService;
+import com.coursemong.back.dashboard.domain.ApiType;
 import com.google.genai.Client;
 import com.google.genai.types.GenerateContentConfig;
 import com.google.genai.types.GenerateContentResponse;
@@ -15,6 +17,7 @@ import org.springframework.stereotype.Component;
 public class GeminiApiClient {
 
     private final Client client;
+    private final ApiCallCountService apiCallCountService;
 
     @Retryable(
             retryFor = {Exception.class},
@@ -28,8 +31,10 @@ public class GeminiApiClient {
                     promptJson,
                     config
             );
+            apiCallCountService.recordSuccess(ApiType.GEMINI);
             return response.text().trim();
         } catch (Exception e) {
+            apiCallCountService.recordFailure(ApiType.GEMINI);
             log.warn("제미나이 API 호출 실패 (재시도 예정): {}", e.getMessage());
             throw new RuntimeException("제미나이 API 호출 실패: " + e.getMessage(), e);
         }

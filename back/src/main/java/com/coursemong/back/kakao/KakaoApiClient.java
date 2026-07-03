@@ -1,5 +1,8 @@
 package com.coursemong.back.kakao;
 
+import com.coursemong.back.dashboard.ApiCallCountService;
+import com.coursemong.back.dashboard.domain.ApiType;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
@@ -13,7 +16,10 @@ import org.springframework.web.client.RestTemplate;
 
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class KakaoApiClient {
+
+    private final ApiCallCountService apiCallCountService;
 
     @Value("${KAKAO_REST_API_KEY}")
     private String kakaoRestApiKey;
@@ -37,8 +43,10 @@ public class KakaoApiClient {
             HttpEntity<?> entity = new HttpEntity<>(headers);
 
             ResponseEntity<String> response = restTemplate.exchange(apiUrl, HttpMethod.GET, entity, String.class);
+            apiCallCountService.recordSuccess(ApiType.KAKAO);
             return response.getBody();
         } catch (Exception e) {
+            apiCallCountService.recordFailure(ApiType.KAKAO);
             log.warn("카카오 API 호출 실패 (재시도 예정): {}", e.getMessage());
             throw new RuntimeException("카카오 API 호출 실패: " + e.getMessage(), e);
         }

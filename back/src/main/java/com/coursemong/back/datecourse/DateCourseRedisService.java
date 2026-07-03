@@ -5,6 +5,7 @@ import com.coursemong.back.datecourse.dto.ActivityRequest;
 import com.coursemong.back.datecourse.dto.ActivityTempResponse;
 import com.coursemong.back.datecourse.dto.DateCourseRequest;
 import com.coursemong.back.datecourse.dto.DateCourseTempResponse;
+import com.coursemong.back.datecourse.dto.TempCourseSummary;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -12,7 +13,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -55,6 +59,43 @@ public class DateCourseRedisService {
             log.error("임시 데이터 조회 실패 tempId: {}", tempId, e);
             throw new RuntimeException("임시 데이터 조회 실패", e);
         }
+    }
+
+    // 대시보드용 — 현재 Redis에 남아있는 임시 코스 전체 + 각각의 남은 TTL 조회
+    // KEYS는 Redis 싱글스레드를 블로킹하는 O(N) 명령어라 데이터가 많아지면 SCAN 커서 방식으로 바꿔야 함
+    // (지금은 임시 코스 TTL이 6시간이라 동시 보관량이 적어 KEYS로도 충분함)
+    public List<TempCourseSummary> getAllTemporarySummaries() {
+        try {
+            Set<String> keys = redisTemplate.keys(TEMP_KEY_PREFIX + "*");
+            if (keys == null || keys.isEmpty()) {
+                return List.of();
+            }
+
+            return keys.stream()
+                    .map(this::toTempCourseSummary)
+                    .filter(Objects::nonNull)
+                    .sorted(Comparator.comparingLong(TempCourseSummary::remainingTtlSeconds))
+                    .toList();
+        } catch (Exception e) {
+            log.error("임시 코스 목록 조회 실패", e);
+            throw new RuntimeException("임시 코스 목록 조회 실패", e);
+        }
+    }
+
+    private TempCourseSummary toTempCourseSummary(String key) {
+        Object cached = redisTemplate.opsForValue().get(key);
+        if (cached == null) {
+            // keys() 조회 이후 TTL 만료로 사라진 경우 -> 목록에서 제외
+            return null;
+        }
+
+        Long ttl = redisTemplate.getExpire(key, TimeUnit.SECONDS);
+        DateCourseTempResponse tempResponse = objectMapper.convertValue(cached, DateCourseTempResponse.class);
+        return new TempCourseSummary(
+                tempResponse.getTempId(),
+                tempResponse.getTitle(),
+                tempResponse.getArea(),
+                ttl != null ? ttl : 0);
     }
 
     public DateCourseTempResponse updateActivityByType(

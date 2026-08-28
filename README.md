@@ -4,6 +4,11 @@
 
 - 작업 기간: 2026.02 - 2026.05
 - 인원: 1명
+- 
+## ⚙️ CourseMong 시스템 다이어그램
+<p align="center">
+  <img width="745" height="506" alt="CourseMong 시스템 다이어그램" src="https://github.com/user-attachments/assets/ebfc7e74-df86-423a-bb0b-33c973aa0abe" />
+</p>
 
 ## 📌 프로젝트 소개
 
